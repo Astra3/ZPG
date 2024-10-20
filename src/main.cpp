@@ -1,12 +1,20 @@
 ﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include <fstream>
+
 #include <cstddef>
 #include <cstdlib>
+#include <glm/trigonometric.hpp>
 #include <initializer_list>
 #include <iostream>
-#include "Shader.hpp"
-#include "VAO.hpp"
-#include "VBO.hpp"
+#include <memory>
+#include <optional>
+#include <vector>
+
+#include "DrawableObject.hpp"
+#include "Model.hpp"
+#include "models/tree.hpp"
 
 void process_input(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -14,18 +22,18 @@ void process_input(GLFWwindow *window) {
     }
 }
 
-
 int main() {
     if (!glfwInit()) {
         std::cerr << "Could not start GLFW3!\n";
         return EXIT_FAILURE;
     }
+    glEnable(GL_DEPTH_TEST);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Testing OpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(800, 600, "Testing OpenGL", NULL, NULL);
     if (window == NULL) {
         std::cerr << "Failed to create GLFW windw" << std::endl;
         glfwTerminate();
@@ -33,70 +41,61 @@ int main() {
     }
     glfwMakeContextCurrent(window);
 
-    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int width, int height) {
-        glViewport(0, 0, width, height);
-    });
+    glfwSetFramebufferSizeCallback(window,
+                                   [](GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); });
 
     glewExperimental = GL_TRUE;
     glewInit();
 
-    auto points = {
-        0.0f,  0.8f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-       -0.3f, -0.5f, 0.0f
+    // glEnable(GL_DEPTH_TEST);
+
+    const float texCoords[] = {
+        0.0f, 0.0f, // lower-left corner
+        1.0f, 0.0f, // lower-right corner
+        0.5f, 1.0f  // top-center corner
     };
-    auto points2 = {
-       -0.8f,  0.8f, 0.0f,  // top
-       -0.8f,  0.2f, 0.0f,  // right
-       -1.0f, -0.0f, 0.0f   // left
-    };
-    const char *vertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-        "}\0";
+    TransformationType t_first;
+    t_first.push_back(std::make_unique<transf::Translate>(transf::Translate(glm::vec3(-2.0f, -4.0f, -0.0f))));
 
-    const char *fragmentShaderSource = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "void main()\n"
-        "{\n"
-        "   FragColor = vec4(0.5, 1.0, 0.5, 1.0);\n"
-        "}\0";
+    TransformationType t_second;
+    t_second.push_back(std::make_unique<transf::Translate>(transf::Translate(glm::vec3(2.0f, -4.0f, -3.0f))));
+    
+    auto shader =
+        std::make_shared<Shader>(std::ifstream("../src/shaders/tree.vs"), std::ifstream("../src/shaders/tree.fs"));
+    auto model = std::make_shared<models::Tree>();
 
-    const char *fragmentShaderSourceViolet = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "void main()\n"
-        "{\n"
-        "   FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n"
-        "}\0";
-
-    Shader shader_program(vertexShaderSource, fragmentShaderSource);
-    Shader violet_program(vertexShaderSource, fragmentShaderSourceViolet);
-
-    VAO vao1;
-    vao1.bind();
-    VBO vbo1(points);
-    vao1.link_vbo(vbo1, 0);
-
-    VAO vao2;
-    vao2.bind();
-    VBO vbo2(points2);
-    vao2.link_vbo(vbo2, 0);
+    DrawableObject object1(model, shader, std::move(t_first));
+    DrawableObject object2(model, shader, std::move(t_second));
+    // DrawableObject object(std::make_unique<models::Sphere>(),
+    //                       std::make_unique<Shader>(std::ifstream("../src/shaders/sphere.vert"),
+    //                                                std::ifstream("../src/shaders/sphere.frag")));
 
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
 
         glClearColor(0.2f, .3f, .3f, .3f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader_program.use();
-        vao1.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glm::mat4 trans(1.0f);
 
-        violet_program.use();
-        vao2.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+        // trans = glm::scale(trans, glm::vec3(0.1, 0.1, 0.1));
+        // shader_program.apply_transformation("transform", trans);
+
+        // TODO leave this for later lol
+        // glm::mat4 projection_matrix(1.0f);
+        // glm::mat4 view_matrix(1.0f);
+        // glm::mat4 model_matrix(1.0f);
+        // shader_program.apply_transformation("projection_matrix", projection_matrix);
+        // shader_program.apply_transformation("view_matrix", view_matrix);
+        // shader_program.apply_transformation("model_matrix", model_matrix);
+        // glDrawArrays(GL_TRIANGLES, 0, (tree.size() - 1));
+        object1.render();
+        object2.render();
+
+        // violet_program.use();
+        // vao2.bind();
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
         // glBindVertexArray(0);
 
         glfwSwapBuffers(window);
@@ -106,4 +105,3 @@ int main() {
 
     return 0;
 }
-
