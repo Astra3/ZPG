@@ -14,11 +14,13 @@ class DrawableObject {
 private:
     std::shared_ptr<Model> model;
     std::shared_ptr<Shader> shader;
+    std::optional<std::shared_ptr<Camera>> camera = std::nullopt;
     std::optional<TransformationType> transformations = std::nullopt;
 
 public:
     DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<Shader> shader) : model(model), shader(shader) {}
-    DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<Shader> shader, TransformationType transformations)
-        : model(model), shader(shader), transformations(std::move(transformations)) {}
+    DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<Shader> shader, std::shared_ptr<Camera> camera,
+                   TransformationType transformations)
+        : model(model), shader(shader), camera(camera), transformations(std::move(transformations)) {}
     void render();
 };

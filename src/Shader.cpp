@@ -1,4 +1,5 @@
 #include "Shader.hpp"
+#include "Camera.hpp"
 #include <fstream>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -6,7 +7,6 @@
 #include <glm/trigonometric.hpp>
 #include <iostream>
 #include <sstream>
-#include "Camera.hpp"
 
 // TODO make this raise exception on failue and also maybe make it part of the class
 void check_shader(GLuint shader) {
@@ -44,7 +44,6 @@ void Shader::initialize(const char *vertex_source, const char *fragment_source) 
 
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
-
 }
 
 Shader::Shader(const std::ifstream vertex_file, const std::ifstream fragment_file) {

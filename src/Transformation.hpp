@@ -19,8 +19,18 @@ public:
 class Translate : public Transformation {
 private:
     glm::vec3 translation_vec;
+
 public:
     Translate(glm::vec3 translation_vec) : translation_vec(translation_vec) {}
+    void apply(glm::mat4 &matrix) override;
+};
+
+class Scale : public Transformation {
+private:
+    glm::vec3 scale_ratio;
+
+public:
+    Scale(glm::vec3 scale_ratio) : scale_ratio(scale_ratio) {}
     void apply(glm::mat4 &matrix) override;
 };
 } // namespace transf

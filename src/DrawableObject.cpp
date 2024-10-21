@@ -2,10 +2,10 @@
 #include <GLFW/glfw3.h>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/vector_float3.hpp>
+#include <glm/geometric.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "Camera.hpp"
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -20,10 +20,10 @@ void DrawableObject::render() {
         }
     }
     this->shader->apply_transformation("model", model);
-    Camera c;
-    this->shader->update(c);
-    this->shader->use();
+    if (this->camera.has_value()) {
+        this->shader->update(**this->camera);
+    }
 
+    this->shader->use();
     this->model->render();
 }
-

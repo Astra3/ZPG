@@ -3,12 +3,9 @@
 #include <iostream>
 
 namespace transf {
-    void Rotate::apply(glm::mat4 &matrix) {
-        matrix = glm::rotate(matrix, this->angle, this->axis);
-    }
+void Rotate::apply(glm::mat4 &matrix) { matrix = glm::rotate(matrix, this->angle, this->axis); }
 
-    void Translate::apply(glm::mat4 &matrix) {
-        matrix = glm::translate(matrix, this->translation_vec);
-    }
-}
+void Translate::apply(glm::mat4 &matrix) { matrix = glm::translate(matrix, this->translation_vec); }
 
+void Scale::apply(glm::mat4 &matrix) { matrix = glm::scale(matrix, this->scale_ratio); }
+} // namespace transf
