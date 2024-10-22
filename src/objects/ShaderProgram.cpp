@@ -1,5 +1,5 @@
-#include "Shader.hpp"
-#include "Camera.hpp"
+#include "ShaderProgram.hpp"
+#include "../Camera.hpp"
 #include <fstream>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -26,7 +26,7 @@ std::string read_file(const std::ifstream &file) {
     return contents.str();
 }
 
-void Shader::initialize(const char *vertex_source, const char *fragment_source) {
+void ShaderProgram::initialize(const char *vertex_source, const char *fragment_source) {
     auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_source, NULL);
     glCompileShader(vertex_shader);
@@ -46,28 +46,28 @@ void Shader::initialize(const char *vertex_source, const char *fragment_source) 
     glDeleteShader(fragment_shader);
 }
 
-Shader::Shader(const std::ifstream vertex_file, const std::ifstream fragment_file) {
+ShaderProgram::ShaderProgram(const std::ifstream vertex_file, const std::ifstream fragment_file) {
     auto vertex_shader = read_file(vertex_file);
     auto fragment_shader = read_file(fragment_file);
     this->initialize(vertex_shader.c_str(), fragment_shader.c_str());
 }
 
-Shader::Shader(const char *vertex_source, const char *fragment_source) {
+ShaderProgram::ShaderProgram(const char *vertex_source, const char *fragment_source) {
     this->initialize(vertex_source, fragment_source);
 }
 
-void Shader::apply_transformation(const char *name, const glm::mat4 &mat) const {
+void ShaderProgram::apply_transformation(const char *name, const glm::mat4 &mat) const {
     uint transform_loc = glGetUniformLocation(this->shader_program_id, name);
     glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
-void Shader::update(Camera &camera) {
+void ShaderProgram::update(Camera &camera) {
     this->apply_transformation("view", camera.get_view());
     this->apply_transformation("projection", camera.get_projection());
 }
 
-Shader::~Shader() { glDeleteProgram(this->shader_program_id); }
+ShaderProgram::~ShaderProgram() { glDeleteProgram(this->shader_program_id); }
 
-void Shader::use() const { glUseProgram(this->shader_program_id); }
+void ShaderProgram::use() const { glUseProgram(this->shader_program_id); }
 
-void Shader::unuse() const { glUseProgram(0); }
+void ShaderProgram::unuse() const { glUseProgram(0); }

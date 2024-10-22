@@ -1,7 +1,7 @@
 #include "Model.hpp"
-#include "models/cube.hpp"
-#include "models/tree.hpp"
-#include "models/bushes.hpp"
+#include "../models/cube.hpp"
+#include "../models/tree.hpp"
+#include "../models/bushes.hpp"
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <initializer_list>

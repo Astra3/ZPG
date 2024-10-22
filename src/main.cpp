@@ -13,8 +13,8 @@
 #include <vector>
 
 #include "Camera.hpp"
-#include "DrawableObject.hpp"
-#include "Model.hpp"
+#include "objects/DrawableObject.hpp"
+#include "objects/Model.hpp"
 #include "models/tree.hpp"
 
 const int SCR_WIDTH = 800;
@@ -83,7 +83,7 @@ int main() {
     };
 
     auto shader =
-        std::make_shared<Shader>(std::ifstream("../src/shaders/tree.vs"), std::ifstream("../src/shaders/tree.fs"));
+        std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/tree.vs"), std::ifstream("../src/shaders/tree.fs"));
     auto model_tree = std::make_shared<models::Tree>();
     auto model_bush = std::make_shared<models::Bush>();
 
