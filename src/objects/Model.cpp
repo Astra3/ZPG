@@ -1,7 +1,8 @@
 #include "Model.hpp"
-#include "../models/cube.hpp"
-#include "../models/tree.hpp"
 #include "../models/bushes.hpp"
+#include "../models/cube.hpp"
+#include "../models/sphere.hpp"
+#include "../models/tree.hpp"
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <initializer_list>
@@ -48,7 +49,6 @@ Cube::Cube() : Model() {
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), NULL);
-    std::cout << "size: " << cube_vertices.size() << std::endl;
 }
 
 void Cube::render() {
@@ -63,9 +63,9 @@ Tree::Tree() : Model() {
     glBufferData(GL_ARRAY_BUFFER, tree_vertices.size() * sizeof(float), tree_vertices.begin(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(0 * sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid *)(0 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid *)(3 * sizeof(float)));
 }
 
 void Tree::render() {
@@ -80,9 +80,9 @@ Bush::Bush() : Model() {
     glBufferData(GL_ARRAY_BUFFER, bushes_vertices.size() * sizeof(float), bushes_vertices.begin(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(0 * sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid *)(0 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid *)(3 * sizeof(float)));
 }
 
 void Bush::render() {
@@ -90,14 +90,11 @@ void Bush::render() {
     glDrawArrays(GL_TRIANGLES, 0, 8730);
 }
 
-const std::initializer_list<float> sphere_points = {-.5f, -.5f, .5f, 0, 0, 1, -.5f, .5f,  .5f, 0, 0, 1,
-                                                    .5f,  .5f,  .5f, 0, 0, 1, .5f,  -.5f, .5f, 0, 0, 1};
-
 Sphere::Sphere() : Model() {
     glBindVertexArray(this->VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-    glBufferData(GL_ARRAY_BUFFER, sphere_points.size() * sizeof(float), sphere_points.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sphere_vertices.size() * sizeof(float), sphere_vertices.begin(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -105,6 +102,9 @@ Sphere::Sphere() : Model() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (GLvoid *)(3 * sizeof(float)));
 }
 
-void Sphere::render() { glBindVertexArray(this->VAO); }
+void Sphere::render() {
+    glBindVertexArray(this->VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 2880);
+}
 
 } // namespace models

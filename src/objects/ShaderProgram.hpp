@@ -12,10 +12,12 @@ private:
 
 public:
     ShaderProgram(const char *vertex_source, const char *fragment_source);
-    ShaderProgram(const std::ifstream vertex_file, const std::ifstream fragment_file);
+    ShaderProgram(const std::ifstream &vertex_file, const std::ifstream &fragment_file);
     void apply_transformation(const char *name, const glm::mat4 &mat) const;
+    void apply_transformation(const char *name, const glm::vec3 &vec) const;
     void use() const;
     void unuse() const;
     ~ShaderProgram();
     void update(Camera &camera) override;
+    void update(lights::PositionedLight &light) override;
 };

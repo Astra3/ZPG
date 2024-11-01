@@ -12,16 +12,26 @@ glm::mat4 Camera::get_projection() {
 
 glm::mat4 Camera::get_view() { return glm::lookAt(this->position, this->position + this->front, this->up); }
 
-void Camera::move_forward(float camera_speed) { this->position += camera_speed * this->front; }
+glm::vec3 Camera::get_position() { return this->position; }
 
-void Camera::move_backward(float camera_speed) { this->position -= camera_speed * this->front; }
+void Camera::move_forward(float camera_speed) {
+    this->position += camera_speed * this->front;
+    this->notify_observers();
+}
+
+void Camera::move_backward(float camera_speed) {
+    this->position -= camera_speed * this->front;
+    this->notify_observers();
+}
 
 void Camera::move_left(float camera_speed) {
     this->position -= glm::normalize(glm::cross(this->front, this->up)) * camera_speed;
+    this->notify_observers();
 }
 
 void Camera::move_right(float camera_speed) {
     this->position += glm::normalize(glm::cross(this->front, this->up)) * camera_speed;
+    this->notify_observers();
 }
 
 void Camera::move_mouse(double x_pos, double y_pos) {
@@ -53,6 +63,7 @@ void Camera::move_mouse(double x_pos, double y_pos) {
     direction.y = std::sin(glm::radians(pitch));
     direction.z = std::sin(glm::radians(this->yaw)) * std::cos(glm::radians(this->pitch));
     this->front = glm::normalize(direction);
+    this->notify_observers();
 }
 
 void Camera::modify_fov(float offset) {
@@ -63,6 +74,7 @@ void Camera::modify_fov(float offset) {
     if (fov > 120.0f) {
         this->fov = 120.0f;
     }
+    this->notify_observers();
 }
 
 void Camera::notify_observers() {

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
+#include <glm/ext/vector_float3.hpp>
 #include <glm/trigonometric.hpp>
 #include <iostream>
 #include <memory>
@@ -13,14 +14,36 @@
 #include <vector>
 
 #include "Camera.hpp"
+#include "generators.hpp"
+#include "models/tree.hpp"
 #include "objects/DrawableObject.hpp"
 #include "objects/Model.hpp"
-#include "models/tree.hpp"
+#include "observers/Observer.hpp"
+#include "scene/Light.hpp"
+#include "scene/Scene.hpp"
 
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
 static auto CAMERA = std::make_shared<Camera>(SCR_WIDTH, SCR_HEIGHT);
+
+void initialize_scenes(std::vector<Scene> &scenes, std::shared_ptr<Light> light,
+                       std::shared_ptr<ShaderProgram> shader) {
+    scenes.push_back(Scene(light));
+    scenes[0].apply_generator(generators::trees_bushes, shader, 300);
+
+    scenes.push_back(Scene(light));
+    auto sphere = std::make_shared<models::Sphere>();
+    TransformationType transformations;
+
+    auto positions = {glm::vec3(8, 0, 8), glm::vec3(8, 0, -8), glm::vec3(-8, 0, 8), glm::vec3(-8, 0, -8)};
+    for (auto pos : positions) {
+        transformations.push_back(std::make_unique<transf::Translate>(pos));
+        transformations.push_back(std::make_unique<transf::Scale>(glm::vec3(4)));
+        scenes[1].add_model(DrawableObject(sphere, shader, std::move(transformations)));
+        transformations.clear();
+    }
+}
 
 int main() {
     if (!glfwInit()) {
@@ -30,12 +53,12 @@ int main() {
     glEnable(GL_DEPTH_TEST);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Testing OpenGL", NULL, NULL);
     if (window == NULL) {
-        std::cerr << "Failed to create GLFW windw" << std::endl;
+        std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return 1;
     }
@@ -47,13 +70,27 @@ int main() {
     glewExperimental = GL_TRUE;
     glewInit();
 
+    glfwSwapInterval(1);
+
     glEnable(GL_DEPTH_TEST);
+
+    std::vector<Scene> scenes;
+    auto light = std::make_shared<lights::PositionedLight>(glm::vec3(1.0f), glm::vec3(0.0f));
+    auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/tree.vs"),
+                                                  std::ifstream("../src/shaders/tree.fs"));
+    initialize_scenes(scenes, light, shader);
+    size_t selected_scene = 0;
+    CAMERA->attach(shader);
+    light->attach(shader);
 
     auto delta_time = 0.0f;
     auto last_frame = 0.0f;
 
-    auto process_input = [window, &delta_time]() {
+    auto process_input = [window, &delta_time, &selected_scene, &scenes, held_scene = false]() mutable {
         float camera_speed = 40.0f * delta_time;
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+            camera_speed *= 3;
+        }
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             CAMERA->move_forward(camera_speed);
         }
@@ -69,6 +106,24 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, true);
         }
+        auto left = glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS;
+        auto right = glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS;
+        if ((left || right) && !held_scene) {
+            held_scene = true;
+            if (left) {
+                if (selected_scene == 0)
+                    selected_scene = scenes.size() - 1;
+                else
+                    selected_scene--;
+            }
+
+            if (right) {
+                selected_scene++;
+                if (selected_scene == scenes.size())
+                    selected_scene = 0;
+            }
+        } else if (!(left || right))
+            held_scene = false;
     };
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -76,40 +131,8 @@ int main() {
                              [](GLFWwindow *, double x_pos, double y_pos) { CAMERA->move_mouse(x_pos, y_pos); });
     glfwSetScrollCallback(window, [](GLFWwindow *, double, double y_offset) { CAMERA->modify_fov(-y_offset * 2.0f); });
 
-    const float texCoords[] = {
-        0.0f, 0.0f, // lower-left corner
-        1.0f, 0.0f, // lower-right corner
-        0.5f, 1.0f  // top-center corner
-    };
-
-    auto shader =
-        std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/tree.vs"), std::ifstream("../src/shaders/tree.fs"));
-    auto model_tree = std::make_shared<models::Tree>();
-    auto model_bush = std::make_shared<models::Bush>();
-
-    // DrawableObject object1(model_tree, shader, CAMERA, std::move(t_first));
-    // DrawableObject object2(model_tree, shader, CAMERA, std::move(t_second));
-    std::random_device rand_dev;
-    std::default_random_engine e1(rand_dev());
-    std::uniform_real_distribution<float> degrees(0, 360);
-    std::uniform_real_distribution<float> position(-80, 80);
-    std::uniform_real_distribution<float> scale(0.5, 4);
-
-    std::vector<DrawableObject> objects;
-    objects.reserve(300);
-    for (size_t i = 0; i < 100; i++) {
-        TransformationType t[3];
-        for (size_t j = 0; j < 3; j++) {
-            t[j].push_back(
-                std::make_unique<transf::Translate>(transf::Translate(glm::vec3(position(e1), -10.0f, position(e1)))));
-            t[j].push_back(std::make_unique<transf::Scale>(transf::Scale(glm::vec3(scale(e1)))));
-            t[j].push_back(std::make_unique<transf::Rotate>(transf::Rotate(degrees(e1), glm::vec3(0.0f, 1.0f, 0.0f))));
-        }
-        objects.push_back(DrawableObject(model_tree, shader, CAMERA, std::move(t[0])));
-        objects.push_back(DrawableObject(model_bush, shader, CAMERA, std::move(t[1])));
-        objects.push_back(DrawableObject(model_bush, shader, CAMERA, std::move(t[2])));
-    }
-
+    auto num = -8.f;
+    bool go_back = false;
     while (!glfwWindowShouldClose(window)) {
         float current_frame = glfwGetTime();
         delta_time = current_frame - last_frame;
@@ -119,7 +142,18 @@ int main() {
         glClearColor(0.2f, .3f, .3f, .3f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        std::ranges::for_each(objects, &DrawableObject::render);
+        if (go_back)
+            num -= .1;
+        else
+            num += .1;
+
+        if (num > 8)
+            go_back = true;
+        else if (num < -8)
+            go_back = false;
+        auto pos = glm::vec3(num, 0.0f, num);
+        light->set_position(pos);
+        scenes[selected_scene].render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

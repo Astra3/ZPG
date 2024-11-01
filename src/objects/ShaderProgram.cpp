@@ -1,21 +1,26 @@
 #include "ShaderProgram.hpp"
 #include "../Camera.hpp"
+#include "../scene/Light.hpp"
+#include <cstdlib>
 #include <fstream>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/trigonometric.hpp>
 #include <iostream>
+#include <memory>
 #include <sstream>
 
 // TODO make this raise exception on failue and also maybe make it part of the class
 void check_shader(GLuint shader) {
     int success;
-    char info_log[512];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
-        glGetShaderInfoLog(shader, 512, NULL, info_log);
-        std::cerr << "Shader compilation failed: " << info_log << std::endl;
+        int length;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+        auto str_info = std::make_unique<char[]>(length + 1);
+        glGetShaderInfoLog(shader, length, NULL, str_info.get());
+        std::cerr << "Shader compilation failed: " << str_info << std::endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -41,12 +46,22 @@ void ShaderProgram::initialize(const char *vertex_source, const char *fragment_s
     glAttachShader(this->shader_program_id, vertex_shader);
     glAttachShader(this->shader_program_id, fragment_shader);
     glLinkProgram(this->shader_program_id);
+    int success;
+    glGetProgramiv(this->shader_program_id, GL_LINK_STATUS, &success);
+    if (!success) {
+        int length;
+        glGetProgramiv(this->shader_program_id, GL_INFO_LOG_LENGTH, &length);
+        auto str_info = std::make_unique<char[]>(length + 1);
+        glGetProgramInfoLog(this->shader_program_id, length, NULL, str_info.get());
+        std::cerr << "Shader program linking failed: " << str_info << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
 }
 
-ShaderProgram::ShaderProgram(const std::ifstream vertex_file, const std::ifstream fragment_file) {
+ShaderProgram::ShaderProgram(const std::ifstream &vertex_file, const std::ifstream &fragment_file) {
     auto vertex_shader = read_file(vertex_file);
     auto fragment_shader = read_file(fragment_file);
     this->initialize(vertex_shader.c_str(), fragment_shader.c_str());
@@ -61,9 +76,23 @@ void ShaderProgram::apply_transformation(const char *name, const glm::mat4 &mat)
     glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
+void ShaderProgram::apply_transformation(const char *name, const glm::vec3 &vec) const {
+    uint transform_loc = glGetUniformLocation(this->shader_program_id, name);
+    glUniform3fv(transform_loc, 1, glm::value_ptr(vec));
+}
+
 void ShaderProgram::update(Camera &camera) {
+    this->use();
+    this->apply_transformation("view_pos", camera.get_position());
     this->apply_transformation("view", camera.get_view());
     this->apply_transformation("projection", camera.get_projection());
+}
+
+void ShaderProgram::update(lights::PositionedLight &light) {
+    this->use();
+    auto data = light.get_data();
+    this->apply_transformation("light_color", data.color);
+    this->apply_transformation("light_pos", data.position);
 }
 
 ShaderProgram::~ShaderProgram() { glDeleteProgram(this->shader_program_id); }

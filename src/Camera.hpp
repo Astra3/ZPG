@@ -27,10 +27,11 @@ private:
     void calculate_speed();
 
 public:
-    Camera(uint width, uint height) : width(width), height(height) {}
-    Camera() {}
+    Camera(uint width, uint height) : width(width), height(height) { this->notify_observers(); }
+    Camera() { this->notify_observers(); }
     glm::mat4 get_view();
     glm::mat4 get_projection();
+    glm::vec3 get_position();
     void move_forward(float camera_speed = CAMERA_SPEED);
     void move_backward(float camera_speed = CAMERA_SPEED);
     void move_left(float camera_speed = CAMERA_SPEED);
