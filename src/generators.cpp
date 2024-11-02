@@ -1,5 +1,4 @@
 #include "generators.hpp"
-#include "Camera.hpp"
 #include "objects/DrawableObject.hpp"
 #include <random>
 

@@ -4,9 +4,9 @@
 
 void Scene::add_model(DrawableObject object) { objects.push_back(std::move(object)); }
 
-void Scene::apply_generator(generators::GENERATOR_FUNCTION generator, std::shared_ptr<ShaderProgram> camera,
+void Scene::apply_generator(generators::GENERATOR_FUNCTION generator, std::shared_ptr<ShaderProgram> shader,
                             size_t count) {
-    generator(this->objects, camera, count);
+    generator(this->objects, shader, count);
 }
 
 void Scene::render() {

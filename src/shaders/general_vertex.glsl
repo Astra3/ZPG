@@ -16,7 +16,7 @@ void main() {
     // i read that in a good program, inversing should be done on the CPU to not bother the GPU too much
     // but hardware didn't advance for nothing
     // TODO is this supposed to be normalized?
-    normal = normalize(mat3(transpose(inverse(model))) * a_normal);
+    normal = mat3(transpose(inverse(model))) * a_normal;
     // normal = a_normal;
 }
 

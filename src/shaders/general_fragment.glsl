@@ -16,11 +16,11 @@ void main() {
     float ambient_strength = 0.1;
     vec3 ambient = ambient_strength * light_color;
 
-    float specular_strength = 0.5;
+    float specular_strength = 0.6;
     vec3 view_dir = normalize(view_pos - frag_pos);
-    vec3 reflect_dir = reflect(-light_direction, norm);
+    vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
+    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), 128);
     vec3 specular = specular_strength * spec * light_color;
 
     vec3 result = (ambient + diffuse + specular) * normal;

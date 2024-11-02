@@ -3,14 +3,12 @@
 
 #include <fstream>
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/trigonometric.hpp>
 #include <iostream>
 #include <memory>
-#include <random>
 #include <vector>
 
 #include "Camera.hpp"
@@ -30,18 +28,39 @@ static auto CAMERA = std::make_shared<Camera>(SCR_WIDTH, SCR_HEIGHT);
 void initialize_scenes(std::vector<Scene> &scenes, std::shared_ptr<Light> light,
                        std::shared_ptr<ShaderProgram> shader) {
     scenes.push_back(Scene(light));
-    scenes[0].apply_generator(generators::trees_bushes, shader, 300);
+    scenes[0].add_model(DrawableObject(std::make_shared<models::Triangle>(), shader));
 
     scenes.push_back(Scene(light));
-    auto sphere = std::make_shared<models::Sphere>();
+    scenes[1].apply_generator(generators::trees_bushes, shader, 300);
+
+    scenes.push_back(Scene(light));
     TransformationType transformations;
 
+    auto sphere = std::make_shared<models::Sphere>();
     auto positions = {glm::vec3(8, 0, 8), glm::vec3(8, 0, -8), glm::vec3(-8, 0, 8), glm::vec3(-8, 0, -8)};
     for (auto pos : positions) {
         transformations.push_back(std::make_unique<transf::Translate>(pos));
         transformations.push_back(std::make_unique<transf::Scale>(glm::vec3(4)));
-        scenes[1].add_model(DrawableObject(sphere, shader, std::move(transformations)));
+        scenes[2].add_model(DrawableObject(sphere, shader, std::move(transformations)));
         transformations.clear();
+    }
+
+    auto shader_filenames = {"../src/shaders/light/diffuse.glsl", "../src/shaders/light/constant.glsl", "../src/shaders/light/phong.glsl", "../src/shaders/light/blinn.glsl"};
+    if (shader_filenames.size() != positions.size()) return;
+
+    scenes.push_back(Scene(light));
+    auto tree = std::make_shared<models::Tree>();
+    auto shader_filename = shader_filenames.begin();
+    auto pos = positions.begin();
+    while (pos != positions.end() || shader_filename != shader_filenames.end()) {
+        auto new_shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/general_vertex.glsl"), std::ifstream(*shader_filename));
+        CAMERA->attach(new_shader);
+        light->attach(new_shader);
+        transformations.push_back(std::make_unique<transf::Translate>(*pos));
+        scenes[3].add_model(DrawableObject(tree, new_shader, std::move(transformations)));
+        transformations.clear();
+        pos++;
+        shader_filename++;
     }
 }
 
@@ -76,8 +95,8 @@ int main() {
 
     std::vector<Scene> scenes;
     auto light = std::make_shared<lights::PositionedLight>(glm::vec3(1.0f), glm::vec3(0.0f));
-    auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/tree.vs"),
-                                                  std::ifstream("../src/shaders/tree.fs"));
+    auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/general_vertex.glsl"),
+                                                  std::ifstream("../src/shaders/general_fragment.glsl"));
     initialize_scenes(scenes, light, shader);
     size_t selected_scene = 0;
     CAMERA->attach(shader);

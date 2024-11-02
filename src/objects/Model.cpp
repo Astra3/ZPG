@@ -6,8 +6,6 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <initializer_list>
-#include <iostream>
-#include <ostream>
 
 void Model::unbind() const {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -25,7 +23,11 @@ Model::~Model() {
 }
 
 namespace models {
-auto triangle_points = {0.0f, 0.8f, 0.0f, 0.5f, -0.5f, 0.0f, -0.3f, -0.5f, 0.0f};
+auto triangle_points = {
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
+     0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
+};  
 Triangle::Triangle() : Model() {
     glBindVertexArray(this->VAO);
 
