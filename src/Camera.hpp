@@ -31,12 +31,14 @@ public:
     Camera() { this->notify_observers(); }
     glm::mat4 get_view();
     glm::mat4 get_projection();
+    void set_width_height(uint width, uint height);
     glm::vec3 get_position();
     void move_forward(float camera_speed = CAMERA_SPEED);
     void move_backward(float camera_speed = CAMERA_SPEED);
     void move_left(float camera_speed = CAMERA_SPEED);
     void move_right(float camera_speed = CAMERA_SPEED);
     void move_mouse(double x_pos, double y_pos);
+    void reset_first_mouse();
     void modify_fov(float offset);
     void notify_observers() override;
 };

@@ -34,6 +34,12 @@ void Camera::move_right(float camera_speed) {
     this->notify_observers();
 }
 
+void Camera::set_width_height(uint width, uint height) {
+    this->width = width;
+    this->height = height;
+    this->notify_observers();
+}
+
 void Camera::move_mouse(double x_pos, double y_pos) {
     if (this->first_mouse) {
         this->last_x = x_pos;
@@ -82,3 +88,5 @@ void Camera::notify_observers() {
         observer->update(*this);
     }
 }
+
+void Camera::reset_first_mouse() { this->first_mouse = true; }

@@ -13,6 +13,7 @@ private:
 
 public:
     Rotate(float angle, glm::vec3 axis) : angle(angle), axis(axis) {}
+    void set_angle(float angle);
     void apply(glm::mat4 &matrix) override;
 };
 

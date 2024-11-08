@@ -24,43 +24,27 @@ const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
 static auto CAMERA = std::make_shared<Camera>(SCR_WIDTH, SCR_HEIGHT);
+void initialize_scenes(std::vector<Scene> &scenes, std::shared_ptr<ShaderProgram> shader) {
+    // auto light = std::make_shared<lights::PositionedLight>(glm::vec3(1.0f), glm::vec3(0.0f));
+    auto light = std::make_unique<lights::PositionedLight>(glm::vec3(1.0f), glm::vec3(0.0f));
+    light->attach(shader);
+    scenes.push_back(Scene(std::move(light)));
 
-void initialize_scenes(std::vector<Scene> &scenes, std::shared_ptr<Light> light,
-                       std::shared_ptr<ShaderProgram> shader) {
-    scenes.push_back(Scene(light));
-    scenes[0].add_model(DrawableObject(std::make_shared<models::Triangle>(), shader));
+    auto second_light = std::make_unique<lights::PositionedLight>(glm::vec3(1.0f, 1.0f, 0), glm::vec3(0));
+    second_light->attach(shader);
+    scenes[0].add_light(std::move(second_light));
 
-    scenes.push_back(Scene(light));
-    scenes[1].apply_generator(generators::trees_bushes, shader, 300);
+    scenes[0].apply_generator(generators::trees_bushes, shader, 300);
 
-    scenes.push_back(Scene(light));
-    TransformationType transformations;
+    light = std::make_unique<lights::PositionedLight>(glm::vec3(1.0f), glm::vec3(0.0f));
+    light->attach(shader);
+    scenes.push_back(Scene(std::move(light)));
 
     auto sphere = std::make_shared<models::Sphere>();
     auto positions = {glm::vec3(8, 0, 8), glm::vec3(8, 0, -8), glm::vec3(-8, 0, 8), glm::vec3(-8, 0, -8)};
     for (auto pos : positions) {
-        transformations.push_back(std::make_unique<transf::Translate>(pos));
-        transformations.push_back(std::make_unique<transf::Scale>(glm::vec3(4)));
-        scenes[2].add_model(DrawableObject(sphere, shader, std::move(transformations)));
-        transformations.clear();
-    }
-
-    auto shader_filenames = {"../src/shaders/light/diffuse.glsl", "../src/shaders/light/constant.glsl", "../src/shaders/light/phong.glsl", "../src/shaders/light/blinn.glsl"};
-    if (shader_filenames.size() != positions.size()) return;
-
-    scenes.push_back(Scene(light));
-    auto tree = std::make_shared<models::Tree>();
-    auto shader_filename = shader_filenames.begin();
-    auto pos = positions.begin();
-    while (pos != positions.end() || shader_filename != shader_filenames.end()) {
-        auto new_shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/general_vertex.glsl"), std::ifstream(*shader_filename));
-        CAMERA->attach(new_shader);
-        light->attach(new_shader);
-        transformations.push_back(std::make_unique<transf::Translate>(*pos));
-        scenes[3].add_model(DrawableObject(tree, new_shader, std::move(transformations)));
-        transformations.clear();
-        pos++;
-        shader_filename++;
+        scenes[1].add_model(DrawableObject(
+            sphere, shader, {std::make_unique<transf::Translate>(pos), std::make_unique<transf::Scale>(glm::vec3(4))}));
     }
 }
 
@@ -93,14 +77,17 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int width, int height) {
+        CAMERA->set_width_height(width, height);
+        glViewport(0, 0, width, height);
+    });
+
     std::vector<Scene> scenes;
-    auto light = std::make_shared<lights::PositionedLight>(glm::vec3(1.0f), glm::vec3(0.0f));
     auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/general_vertex.glsl"),
                                                   std::ifstream("../src/shaders/general_fragment.glsl"));
-    initialize_scenes(scenes, light, shader);
+    initialize_scenes(scenes, shader);
     size_t selected_scene = 0;
     CAMERA->attach(shader);
-    light->attach(shader);
 
     auto delta_time = 0.0f;
     auto last_frame = 0.0f;
@@ -145,10 +132,31 @@ int main() {
             held_scene = false;
     };
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window,
-                             [](GLFWwindow *, double x_pos, double y_pos) { CAMERA->move_mouse(x_pos, y_pos); });
+    glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x_pos, double y_pos) {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+            CAMERA->move_mouse(x_pos, y_pos);
+        else
+            CAMERA->reset_first_mouse();
+    });
+    glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods) {
+        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        else
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    });
     glfwSetScrollCallback(window, [](GLFWwindow *, double, double y_offset) { CAMERA->modify_fov(-y_offset * 2.0f); });
+
+    auto rotation = std::make_shared<transf::Rotate>(0, glm::vec3(0.0f, 1.0f, 0.0f));
+    auto scale = std::make_shared<transf::Scale>(glm::vec3(2.0f));
+    auto model_tree = std::make_shared<models::Tree>();
+    scenes[0].add_model(DrawableObject(
+        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(8.0f, -10.0f, 0.0f)), rotation, scale}));
+    scenes[0].add_model(DrawableObject(
+        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, -10.0f, 8.0f)), rotation, scale}));
+    scenes[0].add_model(DrawableObject(
+        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(-8.0f, -10.0f, 0.0f)), rotation, scale}));
+    scenes[0].add_model(DrawableObject(
+        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, -10.0f, -8.0f)), rotation, scale}));
 
     auto num = -8.f;
     bool go_back = false;
@@ -171,7 +179,10 @@ int main() {
         else if (num < -8)
             go_back = false;
         auto pos = glm::vec3(num, 0.0f, num);
-        light->set_position(pos);
+        dynamic_cast<lights::PositionedLight *>(&*scenes[0].lights.value()[0])->set_position(pos);
+        dynamic_cast<lights::PositionedLight *>(&*scenes[0].lights.value()[1])
+            ->set_position(glm::vec3(-num + 2, 0.0f, -num));
+        rotation->set_angle(glfwGetTime() * 8);
         scenes[selected_scene].render();
 
         glfwSwapBuffers(window);

@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <string>
 
 // TODO make this raise exception on failue and also maybe make it part of the class
 void check_shader(GLuint shader) {
@@ -71,14 +72,18 @@ ShaderProgram::ShaderProgram(const char *vertex_source, const char *fragment_sou
     this->initialize(vertex_source, fragment_source);
 }
 
-void ShaderProgram::apply_transformation(const char *name, const glm::mat4 &mat) const {
-    uint transform_loc = glGetUniformLocation(this->shader_program_id, name);
+void ShaderProgram::apply_transformation(std::string name, const glm::mat4 &mat) const {
+    uint transform_loc = glGetUniformLocation(this->shader_program_id, name.c_str());
     glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
-void ShaderProgram::apply_transformation(const char *name, const glm::vec3 &vec) const {
-    uint transform_loc = glGetUniformLocation(this->shader_program_id, name);
+void ShaderProgram::apply_transformation(std::string name, const glm::vec3 &vec) const {
+    uint transform_loc = glGetUniformLocation(this->shader_program_id, name.c_str());
     glUniform3fv(transform_loc, 1, glm::value_ptr(vec));
+}
+void ShaderProgram::apply_transformation(std::string name, const float value) const {
+    uint transform_lot = glGetUniformLocation(this->shader_program_id, name.c_str());
+    glUniform1f(transform_lot, value);
 }
 
 void ShaderProgram::update(Camera &camera) {
@@ -88,11 +93,16 @@ void ShaderProgram::update(Camera &camera) {
     this->apply_transformation("projection", camera.get_projection());
 }
 
-void ShaderProgram::update(lights::PositionedLight &light) {
+void ShaderProgram::update(lights::PositionedLight &light, size_t light_id) {
     this->use();
     auto data = light.get_data();
-    this->apply_transformation("light_color", data.color);
-    this->apply_transformation("light_pos", data.position);
+    std::string struct_name = "point_lights[" + std::to_string(light_id) + "].";
+    this->apply_transformation(struct_name + "color", data.color);
+    this->apply_transformation(struct_name + "position", data.position);
+
+    this->apply_transformation(struct_name + "constant", data.constant);
+    this->apply_transformation(struct_name + "linear", data.linear);
+    this->apply_transformation(struct_name + "quadratic", data.quadratic);
 }
 
 ShaderProgram::~ShaderProgram() { glDeleteProgram(this->shader_program_id); }

@@ -1,5 +1,6 @@
 #include "generators.hpp"
 #include "objects/DrawableObject.hpp"
+#include <memory>
 #include <random>
 
 std::random_device RAND_DEV;
@@ -18,10 +19,9 @@ void trees_bushes(std::vector<DrawableObject> &objects, std::shared_ptr<ShaderPr
     for (size_t i = 0; i < 100; i++) {
         TransformationType t[3];
         for (size_t j = 0; j < 3; j++) {
-            t[j].push_back(
-                std::make_unique<transf::Translate>(glm::vec3(POSITION(E1), -10.0f, POSITION(E1))));
-            t[j].push_back(std::make_unique<transf::Scale>(glm::vec3(SCALE(E1))));
-            t[j].push_back(std::make_unique<transf::Rotate>(DEGREES(E1), glm::vec3(0.0f, 1.0f, 0.0f)));
+            t[j] = {std::make_shared<transf::Translate>(glm::vec3(POSITION(E1), -10.0f, POSITION(E1))),
+                    std::make_shared<transf::Scale>(glm::vec3(SCALE(E1))),
+                    std::make_shared<transf::Rotate>(DEGREES(E1), glm::vec3(0.0f, 1.0f, 0.0f))};
         }
         objects.push_back(DrawableObject(model_tree, shader, std::move(t[0])));
         objects.push_back(DrawableObject(model_bush, shader, std::move(t[1])));

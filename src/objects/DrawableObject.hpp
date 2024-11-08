@@ -9,7 +9,7 @@
 
 #pragma once
 
-using TransformationType = std::vector<std::unique_ptr<Transformation>>;
+using TransformationType = std::vector<std::shared_ptr<Transformation>>;
 
 class DrawableObject {
 private:
