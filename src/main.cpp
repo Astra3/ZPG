@@ -20,32 +20,44 @@
 #include "scene/Light.hpp"
 #include "scene/Scene.hpp"
 
+#define TRIANGLE 0
+#define FOUR_SPHERES 1
+#define FOREST 2
+#define FOREST_NIGHT 3
+
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
 static auto CAMERA = std::make_shared<Camera>(SCR_WIDTH, SCR_HEIGHT);
 void initialize_scenes(std::vector<Scene> &scenes, std::shared_ptr<ShaderProgram> shader) {
-    // auto light = std::make_shared<lights::PositionedLight>(glm::vec3(1.0f), glm::vec3(0.0f));
-    auto light = std::make_unique<lights::PositionedLight>(glm::vec3(1.0f), glm::vec3(0.0f));
-    light->attach(shader);
-    scenes.push_back(Scene(std::move(light)));
+    // triangle
+    scenes.push_back(Scene());
+    scenes[TRIANGLE].add_model(DrawableObject(std::make_shared<models::Triangle>(), shader));
 
-    auto second_light = std::make_unique<lights::PositionedLight>(glm::vec3(1.0f, 1.0f, 0), glm::vec3(0));
-    second_light->attach(shader);
-    scenes[0].add_light(std::move(second_light));
-
-    scenes[0].apply_generator(generators::trees_bushes, shader, 300);
-
-    light = std::make_unique<lights::PositionedLight>(glm::vec3(1.0f), glm::vec3(0.0f));
+    // spheres
+    auto light = std::make_unique<lights::Point>(glm::vec3(1.0f), glm::vec3(0.0f));
+    // light->light_strength = LightStrength{.diffuse = glm::vec3(1.0)};
     light->attach(shader);
     scenes.push_back(Scene(std::move(light)));
 
     auto sphere = std::make_shared<models::Sphere>();
     auto positions = {glm::vec3(8, 0, 8), glm::vec3(8, 0, -8), glm::vec3(-8, 0, 8), glm::vec3(-8, 0, -8)};
     for (auto pos : positions) {
-        scenes[1].add_model(DrawableObject(
+        scenes[FOUR_SPHERES].add_model(DrawableObject(
             sphere, shader, {std::make_unique<transf::Translate>(pos), std::make_unique<transf::Scale>(glm::vec3(4))}));
     }
+
+    // forest day
+    auto dir_light = std::make_unique<lights::Directional>(glm::vec3(1), glm::vec3(0));
+    dir_light->light_strength = LightStrength{.ambient = glm::vec3(.1f), .diffuse = glm::vec3(0.1f)};
+    dir_light->attach(shader);
+    scenes.push_back(Scene(std::move(dir_light)));
+
+    auto flashlight = std::make_unique<lights::Flashlight>(CAMERA);
+    flashlight->attach(shader);
+    scenes[FOREST].lights->push_back(std::move(flashlight));
+
+    scenes[FOREST].apply_generator(generators::trees_bushes, shader, 300);
 }
 
 int main() {
@@ -53,7 +65,6 @@ int main() {
         std::cerr << "Could not start GLFW3!\n";
         return EXIT_FAILURE;
     }
-    glEnable(GL_DEPTH_TEST);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -67,15 +78,10 @@ int main() {
     }
     glfwMakeContextCurrent(window);
 
-    glfwSetFramebufferSizeCallback(window,
-                                   [](GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); });
-
-    glewExperimental = GL_TRUE;
     glewInit();
+    glEnable(GL_DEPTH_TEST);
 
     glfwSwapInterval(1);
-
-    glEnable(GL_DEPTH_TEST);
 
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int width, int height) {
         CAMERA->set_width_height(width, height);
@@ -146,20 +152,18 @@ int main() {
     });
     glfwSetScrollCallback(window, [](GLFWwindow *, double, double y_offset) { CAMERA->modify_fov(-y_offset * 2.0f); });
 
-    auto rotation = std::make_shared<transf::Rotate>(0, glm::vec3(0.0f, 1.0f, 0.0f));
+    auto rotation = std::make_shared<transf::RotateTime>();
     auto scale = std::make_shared<transf::Scale>(glm::vec3(2.0f));
     auto model_tree = std::make_shared<models::Tree>();
-    scenes[0].add_model(DrawableObject(
+    scenes[FOREST].add_model(DrawableObject(
         model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(8.0f, -10.0f, 0.0f)), rotation, scale}));
-    scenes[0].add_model(DrawableObject(
+    scenes[FOREST].add_model(DrawableObject(
         model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, -10.0f, 8.0f)), rotation, scale}));
-    scenes[0].add_model(DrawableObject(
+    scenes[FOREST].add_model(DrawableObject(
         model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(-8.0f, -10.0f, 0.0f)), rotation, scale}));
-    scenes[0].add_model(DrawableObject(
+    scenes[FOREST].add_model(DrawableObject(
         model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, -10.0f, -8.0f)), rotation, scale}));
 
-    auto num = -8.f;
-    bool go_back = false;
     while (!glfwWindowShouldClose(window)) {
         float current_frame = glfwGetTime();
         delta_time = current_frame - last_frame;
@@ -169,20 +173,6 @@ int main() {
         glClearColor(0.2f, .3f, .3f, .3f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (go_back)
-            num -= .1;
-        else
-            num += .1;
-
-        if (num > 8)
-            go_back = true;
-        else if (num < -8)
-            go_back = false;
-        auto pos = glm::vec3(num, 0.0f, num);
-        dynamic_cast<lights::PositionedLight *>(&*scenes[0].lights.value()[0])->set_position(pos);
-        dynamic_cast<lights::PositionedLight *>(&*scenes[0].lights.value()[1])
-            ->set_position(glm::vec3(-num + 2, 0.0f, -num));
-        rotation->set_angle(glfwGetTime() * 8);
         scenes[selected_scene].render();
 
         glfwSwapBuffers(window);

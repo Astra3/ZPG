@@ -32,7 +32,8 @@ public:
     glm::mat4 get_view();
     glm::mat4 get_projection();
     void set_width_height(uint width, uint height);
-    glm::vec3 get_position();
+    glm::vec3 get_position() const;
+    glm::vec3 get_front() const;
     void move_forward(float camera_speed = CAMERA_SPEED);
     void move_backward(float camera_speed = CAMERA_SPEED);
     void move_left(float camera_speed = CAMERA_SPEED);

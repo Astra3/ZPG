@@ -1,6 +1,7 @@
 #include "../observers/Observer.hpp"
 #include <GL/glew.h>
 #include <fstream>
+#include "../scene/Light.hpp"
 #include <glm/ext/matrix_float3x3.hpp>
 
 #pragma once
@@ -9,6 +10,8 @@ class ShaderProgram : public Observer {
 private:
     void initialize(const char *vertex_source, const char *fragment_source);
     GLuint shader_program_id;
+    void apply_attenuation(std::string &struct_name, AttenuationData attenuation);
+    void apply_light_strength(std::string &struct_name, LightStrength strength);
 
 public:
     ShaderProgram(const char *vertex_source, const char *fragment_source);
@@ -20,5 +23,5 @@ public:
     void unuse() const;
     ~ShaderProgram();
     void update(Camera &camera) override;
-    void update(lights::PositionedLight &light, size_t light_id = 0) override;
+    void update(Light &light, size_t light_id = 0) override;
 };

@@ -1,28 +1,37 @@
 #include "Light.hpp"
+#include "../Camera.hpp"
 
 void Light::set_color(glm::vec3 color) {
     this->color = color;
     this->notify_observers();
 }
 
+glm::vec3 Light::get_color() const { return this->color; }
+
 void Light::set_id(size_t id) { this->id = id; }
 
-namespace lights {
-void PositionedLight::notify_observers() {
+void Light::notify_observers() {
     for (auto &observer : this->observers) {
         observer->update(*this, this->id);
     }
 }
-void PositionedLight::set_position(glm::vec3 position) {
+
+namespace lights {
+void Point::set_position(glm::vec3 position) {
     this->position = position;
     this->notify_observers();
 }
 
-LightData PositionedLight::get_data() {
-    return LightData{.color = this->color,
-                     .position = this->position,
-                     .constant = this->constant,
-                     .linear = this->linear,
-                     .quadratic = this->quadratic};
-}
+glm::vec3 Point::get_position() const { return this->position; }
+
+glm::vec3 Directional::get_direction() const { return this->direction; }
+
+glm::vec3 Spot::get_direction() const { return this->direction; }
+glm::vec3 Spot::get_position() const { return this->position; }
+float Spot::get_cut_off() const { return this->cut_off; }
+
+glm::vec3 Flashlight::get_direction() const { return this->camera->get_front(); }
+
+glm::vec3 Flashlight::get_position() const { return this->camera->get_position(); }
+
 } // namespace lights

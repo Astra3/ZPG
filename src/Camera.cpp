@@ -12,7 +12,8 @@ glm::mat4 Camera::get_projection() {
 
 glm::mat4 Camera::get_view() { return glm::lookAt(this->position, this->position + this->front, this->up); }
 
-glm::vec3 Camera::get_position() { return this->position; }
+glm::vec3 Camera::get_position() const { return this->position; }
+glm::vec3 Camera::get_front() const { return this->front; }
 
 void Camera::move_forward(float camera_speed) {
     this->position += camera_speed * this->front;

@@ -10,8 +10,8 @@ set(OpenGL_GL_PREFERENCE LEGACY)
 find_package(glm REQUIRED)
 find_package(OpenGL REQUIRED)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GLFW3 REQUIRED glfw3)
+# find_package(glfw3 REQUIRED)
+add_subdirectory(glfw)
 
 find_package(GLEW REQUIRED)
 

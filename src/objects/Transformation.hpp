@@ -7,13 +7,19 @@ public:
 
 namespace transf {
 class Rotate : public Transformation {
-private:
+protected:
     float angle;
     glm::vec3 axis;
 
 public:
     Rotate(float angle, glm::vec3 axis) : angle(angle), axis(axis) {}
     void set_angle(float angle);
+    void apply(glm::mat4 &matrix) override;
+};
+
+class RotateTime : public Rotate {
+    public:
+    RotateTime() : Rotate(0.f, glm::vec3(0, 1, 0)) {}
     void apply(glm::mat4 &matrix) override;
 };
 

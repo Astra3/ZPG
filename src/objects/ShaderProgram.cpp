@@ -73,36 +73,77 @@ ShaderProgram::ShaderProgram(const char *vertex_source, const char *fragment_sou
 }
 
 void ShaderProgram::apply_transformation(std::string name, const glm::mat4 &mat) const {
+    this->use();
     uint transform_loc = glGetUniformLocation(this->shader_program_id, name.c_str());
     glUniformMatrix4fv(transform_loc, 1, GL_FALSE, glm::value_ptr(mat));
+    glUseProgram(0);
 }
 
 void ShaderProgram::apply_transformation(std::string name, const glm::vec3 &vec) const {
+    this->use();
     uint transform_loc = glGetUniformLocation(this->shader_program_id, name.c_str());
     glUniform3fv(transform_loc, 1, glm::value_ptr(vec));
+    glUseProgram(0);
 }
 void ShaderProgram::apply_transformation(std::string name, const float value) const {
+    this->use();
     uint transform_lot = glGetUniformLocation(this->shader_program_id, name.c_str());
     glUniform1f(transform_lot, value);
+    glUseProgram(0);
 }
 
 void ShaderProgram::update(Camera &camera) {
-    this->use();
     this->apply_transformation("view_pos", camera.get_position());
     this->apply_transformation("view", camera.get_view());
     this->apply_transformation("projection", camera.get_projection());
 }
 
-void ShaderProgram::update(lights::PositionedLight &light, size_t light_id) {
-    this->use();
-    auto data = light.get_data();
-    std::string struct_name = "point_lights[" + std::to_string(light_id) + "].";
-    this->apply_transformation(struct_name + "color", data.color);
-    this->apply_transformation(struct_name + "position", data.position);
+void ShaderProgram::apply_attenuation(std::string &struct_name, AttenuationData attenuation) {
+    this->apply_transformation(struct_name + "constant", attenuation.constant);
+    this->apply_transformation(struct_name + "linear", attenuation.linear);
+    this->apply_transformation(struct_name + "quadratic", attenuation.quadratic);
+}
 
-    this->apply_transformation(struct_name + "constant", data.constant);
-    this->apply_transformation(struct_name + "linear", data.linear);
-    this->apply_transformation(struct_name + "quadratic", data.quadratic);
+void ShaderProgram::apply_light_strength(std::string &struct_name, LightStrength strength) {
+    this->apply_transformation(struct_name + "ambient", strength.ambient);
+    this->apply_transformation(struct_name + "specular", strength.specular);
+    this->apply_transformation(struct_name + "diffuse", strength.diffuse);
+}
+
+void ShaderProgram::update(Light &light, size_t light_id) {
+    auto positional = dynamic_cast<lights::Point *>(&light);
+    if (positional != nullptr) {
+        std::string struct_name = "point_lights[" + std::to_string(light_id) + "].";
+        this->apply_transformation(struct_name + "color", positional->get_color());
+        this->apply_transformation(struct_name + "position", positional->get_position());
+
+        this->apply_light_strength(struct_name, positional->light_strength);
+        this->apply_attenuation(struct_name, positional->attenuation);
+        return;
+    }
+
+    auto directional = dynamic_cast<lights::Directional *>(&light);
+    if (directional != nullptr) {
+        std::string struct_name = "directional_light.";
+        this->apply_transformation(struct_name + "color", directional->get_color());
+        this->apply_transformation(struct_name + "direction", directional->get_direction());
+
+        this->apply_light_strength(struct_name, directional->light_strength);
+        return;
+    }
+
+    auto spot = dynamic_cast<lights::Flashlight *>(&light);
+    if (spot != nullptr) {
+        std::string struct_name = "spot_light.";
+        this->apply_transformation(struct_name + "color", spot->get_color());
+        this->apply_transformation(struct_name + "direction", spot->get_direction());
+        this->apply_transformation(struct_name + "position", spot->get_position());
+        this->apply_transformation(struct_name + "cut_off", spot->get_cut_off());
+
+        this->apply_light_strength(struct_name, spot->light_strength);
+        this->apply_attenuation(struct_name, spot->attenuation);
+        return;
+    }
 }
 
 ShaderProgram::~ShaderProgram() { glDeleteProgram(this->shader_program_id); }
