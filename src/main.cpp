@@ -16,48 +16,54 @@
 #include "models/tree.hpp"
 #include "objects/DrawableObject.hpp"
 #include "objects/Model.hpp"
+#include "objects/ShaderProgram.hpp"
 #include "observers/Observer.hpp"
 #include "scene/Light.hpp"
 #include "scene/Scene.hpp"
 
-#define TRIANGLE 0
-#define FOUR_SPHERES 1
-#define FOREST 2
-#define FOREST_NIGHT 3
+#define TEXTURE_TEST 0
+#define FOREST 1
 
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
 static auto CAMERA = std::make_shared<Camera>(SCR_WIDTH, SCR_HEIGHT);
 void initialize_scenes(std::vector<Scene> &scenes, std::shared_ptr<ShaderProgram> shader) {
-    // triangle
-    scenes.push_back(Scene());
-    scenes[TRIANGLE].add_model(DrawableObject(std::make_shared<models::Triangle>(), shader));
+    auto tex_shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/texture_vertex.glsl"),
+                                                      std::ifstream("../src/shaders/texture_fragment.glsl"));
+    CAMERA->attach(tex_shader);
+    auto grass_texture = std::make_shared<Texture>("../src/img/grass.png");
+    auto wood_texture = std::make_shared<Texture>("../src/img/test.png");
 
-    // spheres
-    auto light = std::make_unique<lights::Point>(glm::vec3(1.0f), glm::vec3(0.0f));
-    // light->light_strength = LightStrength{.diffuse = glm::vec3(1.0)};
-    light->attach(shader);
-    scenes.push_back(Scene(std::move(light)));
-
-    auto sphere = std::make_shared<models::Sphere>();
-    auto positions = {glm::vec3(8, 0, 8), glm::vec3(8, 0, -8), glm::vec3(-8, 0, 8), glm::vec3(-8, 0, -8)};
-    for (auto pos : positions) {
-        scenes[FOUR_SPHERES].add_model(DrawableObject(
-            sphere, shader, {std::make_unique<transf::Translate>(pos), std::make_unique<transf::Scale>(glm::vec3(4))}));
-    }
+    // two plains
+    scenes.emplace_back();
+    auto plain = std::make_shared<models::Plain>();
+    scenes[TEXTURE_TEST].add_model(DrawableObject(plain, tex_shader, {}, grass_texture));
+    scenes[TEXTURE_TEST].add_model(
+        DrawableObject(plain, tex_shader, {std::make_shared<transf::Translate>(glm::vec3(0, 1, 0))}, wood_texture));
 
     // forest day
     auto dir_light = std::make_unique<lights::Directional>(glm::vec3(1), glm::vec3(0));
     dir_light->light_strength = LightStrength{.ambient = glm::vec3(.1f), .diffuse = glm::vec3(0.1f)};
-    dir_light->attach(shader);
-    scenes.push_back(Scene(std::move(dir_light)));
+    scenes.emplace_back(std::move(dir_light), CAMERA);
 
     auto flashlight = std::make_unique<lights::Flashlight>(CAMERA);
-    flashlight->attach(shader);
     scenes[FOREST].lights->push_back(std::move(flashlight));
 
+    auto point = std::make_unique<lights::Point>(glm::vec3(1), glm::vec3(0, 10, 0));
+    scenes[FOREST].lights->push_back(std::move(point));
+
     scenes[FOREST].apply_generator(generators::trees_bushes, shader, 300);
+
+    scenes[FOREST].add_model(DrawableObject(
+        plain, tex_shader,
+        {std::make_shared<transf::Scale>(glm::vec3(80.0f)), std::make_shared<transf::Translate>(glm::vec3(0, 0.0f, 0))},
+        grass_texture));
+
+    for (auto &light : *scenes[FOREST].lights) {
+        light->attach(tex_shader);
+        light->attach(shader);
+    }
 }
 
 int main() {
@@ -156,13 +162,13 @@ int main() {
     auto scale = std::make_shared<transf::Scale>(glm::vec3(2.0f));
     auto model_tree = std::make_shared<models::Tree>();
     scenes[FOREST].add_model(DrawableObject(
-        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(8.0f, -10.0f, 0.0f)), rotation, scale}));
+        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(8.0f, 0.0f, 0.0f)), rotation, scale}));
     scenes[FOREST].add_model(DrawableObject(
-        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, -10.0f, 8.0f)), rotation, scale}));
+        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, 0.0f, 8.0f)), rotation, scale}));
     scenes[FOREST].add_model(DrawableObject(
-        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(-8.0f, -10.0f, 0.0f)), rotation, scale}));
+        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(-8.0f, 0.0f, 0.0f)), rotation, scale}));
     scenes[FOREST].add_model(DrawableObject(
-        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, -10.0f, -8.0f)), rotation, scale}));
+        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, 0.0f, -8.0f)), rotation, scale}));
 
     while (!glfwWindowShouldClose(window)) {
         float current_frame = glfwGetTime();

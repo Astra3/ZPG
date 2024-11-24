@@ -66,6 +66,7 @@ private:
     glm::vec3 position{0.0f};
     glm::vec3 direction{0.0f};
     float cut_off = glm::cos(glm::radians(12.5f));
+    float outer_cut_off = glm::cos(glm::radians(20.f));
 
 public:
     Spot(glm::vec3 color, glm::vec3 direction, glm::vec3 position, size_t id = 0)
@@ -74,6 +75,7 @@ public:
     glm::vec3 get_direction() const;
     glm::vec3 get_position() const;
     float get_cut_off() const;
+    float get_outer_cut_off() const;
 };
 
 class Flashlight : public Spot {

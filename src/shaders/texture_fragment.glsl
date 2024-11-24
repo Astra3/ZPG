@@ -2,6 +2,7 @@
 #define MAX_LIGHTS 1
 in vec3 normal;
 in vec3 frag_pos;
+in vec2 tex_coord;
 out vec4 frag_color;
 
 struct PointLight {
@@ -45,6 +46,8 @@ struct SpotLight {
 uniform PointLight point_lights[MAX_LIGHTS];
 uniform DirectionalLight directional_light;
 uniform SpotLight spot_light;
+
+uniform sampler2D tex_unit_id;
 
 uniform vec3 view_pos;
 
@@ -125,6 +128,6 @@ void main() {
 
     result += calc_direction_light(directional_light, view_dir, norm);
 
-    result *= normal;
-    frag_color = vec4(result, 1.0);
+    // frag_color = vec4(result, 1.0), texture(our_texture, tex_coord);
+    frag_color = vec4(result, 1.0) * texture(tex_unit_id, tex_coord);
 }

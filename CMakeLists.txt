@@ -11,7 +11,8 @@ find_package(glm REQUIRED)
 find_package(OpenGL REQUIRED)
 
 # find_package(glfw3 REQUIRED)
-add_subdirectory(glfw)
+add_subdirectory(libs/glfw)
+add_subdirectory(libs/soil2)
 
 find_package(GLEW REQUIRED)
 
@@ -21,5 +22,5 @@ include_directories(include)
 
 add_executable(zpg ${SOURCES})
 
-target_link_libraries(zpg PRIVATE glfw glm::glm ${OPENGL_gl_LIBRARY} GLEW::GLEW)
+target_link_libraries(zpg PRIVATE soil2 glfw glm::glm ${OPENGL_gl_LIBRARY} GLEW::GLEW)
 

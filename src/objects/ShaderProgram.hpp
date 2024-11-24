@@ -19,6 +19,7 @@ public:
     void apply_transformation(std::string name, const glm::mat4 &mat) const;
     void apply_transformation(std::string name, const glm::vec3 &vec) const;
     void apply_transformation(std::string name, const float value) const;
+    void apply_transformation(std::string name, const int value) const;
     void use() const;
     void unuse() const;
     ~ShaderProgram();

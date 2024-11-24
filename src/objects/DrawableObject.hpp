@@ -1,7 +1,7 @@
 #include "Model.hpp"
 #include "ShaderProgram.hpp"
+#include "Texture.hpp"
 #include "Transformation.hpp"
-#include "../Camera.hpp"
 #include <GL/glew.h>
 #include <memory>
 #include <optional>
@@ -16,6 +16,7 @@ private:
     std::shared_ptr<Model> model;
     std::shared_ptr<ShaderProgram> shader;
     std::optional<TransformationType> transformations = std::nullopt;
+    std::optional<std::shared_ptr<Texturable>> texture = std::nullopt;
 
 public:
     DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<ShaderProgram> shader)
@@ -23,5 +24,8 @@ public:
     DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<ShaderProgram> shader,
                    TransformationType transformations)
         : model(model), shader(shader), transformations(std::move(transformations)) {}
+    DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<ShaderProgram> shader,
+                   TransformationType transformations, std::shared_ptr<Texturable> texture)
+        : model(model), shader(shader), transformations(std::move(transformations)), texture(texture) {}
     void render();
 };

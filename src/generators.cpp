@@ -19,7 +19,7 @@ void trees_bushes(std::vector<DrawableObject> &objects, std::shared_ptr<ShaderPr
     for (size_t i = 0; i < 100; i++) {
         TransformationType t[3];
         for (size_t j = 0; j < 3; j++) {
-            t[j] = {std::make_shared<transf::Translate>(glm::vec3(POSITION(E1), -10.0f, POSITION(E1))),
+            t[j] = {std::make_shared<transf::Translate>(glm::vec3(POSITION(E1), -0.0f, POSITION(E1))),
                     std::make_shared<transf::Scale>(glm::vec3(SCALE(E1))),
                     std::make_shared<transf::Rotate>(DEGREES(E1), glm::vec3(0.0f, 1.0f, 0.0f))};
         }

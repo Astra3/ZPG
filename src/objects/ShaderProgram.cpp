@@ -92,6 +92,13 @@ void ShaderProgram::apply_transformation(std::string name, const float value) co
     glUseProgram(0);
 }
 
+void ShaderProgram::apply_transformation(std::string name, const int value) const {
+    this->use();
+    uint transform_lot = glGetUniformLocation(this->shader_program_id, name.c_str());
+    glUniform1i(transform_lot, value);
+    glUseProgram(0);
+}
+
 void ShaderProgram::update(Camera &camera) {
     this->apply_transformation("view_pos", camera.get_position());
     this->apply_transformation("view", camera.get_view());
@@ -139,6 +146,7 @@ void ShaderProgram::update(Light &light, size_t light_id) {
         this->apply_transformation(struct_name + "direction", spot->get_direction());
         this->apply_transformation(struct_name + "position", spot->get_position());
         this->apply_transformation(struct_name + "cut_off", spot->get_cut_off());
+        this->apply_transformation(struct_name + "outer_cut_off", spot->get_outer_cut_off());
 
         this->apply_light_strength(struct_name, spot->light_strength);
         this->apply_attenuation(struct_name, spot->attenuation);

@@ -29,6 +29,7 @@ glm::vec3 Directional::get_direction() const { return this->direction; }
 glm::vec3 Spot::get_direction() const { return this->direction; }
 glm::vec3 Spot::get_position() const { return this->position; }
 float Spot::get_cut_off() const { return this->cut_off; }
+float Spot::get_outer_cut_off() const { return this->outer_cut_off; }
 
 glm::vec3 Flashlight::get_direction() const { return this->camera->get_front(); }
 

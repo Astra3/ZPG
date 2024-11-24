@@ -17,6 +17,12 @@ void DrawableObject::render() {
     }
     this->shader->apply_transformation("model", model);
 
+    if (this->texture.has_value()) {
+        // this->shader->apply_transformation("tex_unit_id", 0);
+        (*this->texture)->apply_uniform(*this->shader);
+        (*this->texture)->bind();
+    }
+
     this->shader->use();
     this->model->render();
     glUseProgram(0);
