@@ -1,3 +1,4 @@
+#include "Material.hpp"
 #include "Model.hpp"
 #include "ShaderProgram.hpp"
 #include "Texture.hpp"
@@ -17,6 +18,7 @@ private:
     std::shared_ptr<ShaderProgram> shader;
     std::optional<TransformationType> transformations = std::nullopt;
     std::optional<std::shared_ptr<Texturable>> texture = std::nullopt;
+    std::optional<Material> material = std::nullopt;
 
 public:
     DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<ShaderProgram> shader)
@@ -27,5 +29,12 @@ public:
     DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<ShaderProgram> shader,
                    TransformationType transformations, std::shared_ptr<Texturable> texture)
         : model(model), shader(shader), transformations(std::move(transformations)), texture(texture) {}
+    DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<ShaderProgram> shader,
+                   TransformationType transformations, std::shared_ptr<Texturable> texture, Material material)
+        : model(model), shader(shader), transformations(std::move(transformations)), texture(texture),
+          material(material) {}
+    DrawableObject(std::shared_ptr<Model> model, std::shared_ptr<ShaderProgram> shader,
+                   TransformationType transformations, Material material)
+        : model(model), shader(shader), transformations(std::move(transformations)), material(material) {}
     void render();
 };

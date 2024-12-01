@@ -19,13 +19,23 @@ void trees_bushes(std::vector<DrawableObject> &objects, std::shared_ptr<ShaderPr
     for (size_t i = 0; i < 100; i++) {
         TransformationType t[3];
         for (size_t j = 0; j < 3; j++) {
-            t[j] = {std::make_shared<transf::Translate>(glm::vec3(POSITION(E1), -0.0f, POSITION(E1))),
+            // FIXME this is very nasty
+            const auto LIMIT = 20.0f;
+            float x;
+            do {
+                x = POSITION(E1);
+            } while (x >= -LIMIT && x <= LIMIT);
+            float z;
+            do {
+                z = POSITION(E1);
+            } while (z >= -LIMIT && z <= LIMIT);
+            t[j] = {std::make_shared<transf::Translate>(glm::vec3(x, -0.0f, z)),
                     std::make_shared<transf::Scale>(glm::vec3(SCALE(E1))),
                     std::make_shared<transf::Rotate>(DEGREES(E1), glm::vec3(0.0f, 1.0f, 0.0f))};
         }
-        objects.push_back(DrawableObject(model_tree, shader, std::move(t[0])));
-        objects.push_back(DrawableObject(model_bush, shader, std::move(t[1])));
-        objects.push_back(DrawableObject(model_bush, shader, std::move(t[2])));
+        objects.push_back(DrawableObject(model_tree, shader, std::move(t[0]), Material()));
+        objects.push_back(DrawableObject(model_bush, shader, std::move(t[1]), Material()));
+        objects.push_back(DrawableObject(model_bush, shader, std::move(t[2]), Material()));
     }
 }
 } // namespace generators

@@ -4,9 +4,15 @@ in vec3 normal;
 in vec3 frag_pos;
 out vec4 frag_color;
 
+struct Material {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+};
+
 struct PointLight {
     vec3 position;
-    vec3 color;
 
     float constant;
     float linear;
@@ -19,7 +25,6 @@ struct PointLight {
 
 struct DirectionalLight {
     vec3 direction;
-    vec3 color;
 
     vec3 ambient;
     vec3 specular;
@@ -27,7 +32,6 @@ struct DirectionalLight {
 };
 
 struct SpotLight {
-    vec3 color;
     vec3 direction;
     vec3 position;
     float cut_off;
@@ -46,34 +50,36 @@ uniform PointLight point_lights[MAX_LIGHTS];
 uniform DirectionalLight directional_light;
 uniform SpotLight spot_light;
 
+uniform Material material;
+
 uniform vec3 view_pos;
 
 vec3 calc_direction_light(DirectionalLight light, vec3 view_dir, vec3 norm) {
     vec3 light_direction = normalize(-light.direction);
     float diff = max(dot(norm, light_direction), 0.0);
-    vec3 diffuse = light.diffuse * diff * light.color;
+    vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
-    vec3 ambient = light.ambient * light.color;
+    vec3 ambient = light.ambient * material.ambient;
 
     vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), 128);
-    vec3 specular = light.specular * spec * light.color;
+    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), material.shininess);
+    vec3 specular = light.specular * (spec * material.specular);
 
     return (ambient + diffuse + specular);
 }
 
 vec3 calc_point_light(PointLight light, vec3 view_dir, vec3 norm) {
     vec3 light_direction = normalize(light.position - frag_pos);
-    vec3 ambient = light.ambient * light.color;
+    vec3 ambient = light.ambient * material.ambient;
 
     float diff = max(dot(norm, light_direction), 0.0);
-    vec3 diffuse = light.diffuse * diff * light.color;
+    vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
     vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), 128);
-    vec3 specular = light.specular * spec * light.color;
+    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), material.shininess);
+    vec3 specular = light.specular * (spec * material.specular);
 
     float distance = length(light.position - frag_pos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
@@ -86,15 +92,15 @@ vec3 calc_point_light(PointLight light, vec3 view_dir, vec3 norm) {
 
 vec3 calc_spot_light(SpotLight light, vec3 view_dir, vec3 norm) {
     vec3 light_direction = normalize(light.position - frag_pos);
-    vec3 ambient = light.ambient * light.color;
+    vec3 ambient = light.ambient * material.ambient;
 
     float diff = max(dot(norm, light_direction), 0.0);
-    vec3 diffuse = light.diffuse * diff * light.color;
+    vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
     vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), 128);
-    vec3 specular = light.specular * spec * light.color;
+    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), material.shininess);
+    vec3 specular = light.specular * (spec * material.specular);
 
     float distance = length(light.position - frag_pos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
@@ -119,7 +125,7 @@ void main() {
     vec3 result = vec3(0);
     for (int i = 0; i < MAX_LIGHTS; i++) {
         result += calc_point_light(point_lights[i], view_dir, norm);
-    }
+}
 
     result += calc_spot_light(spot_light, view_dir, norm);
 

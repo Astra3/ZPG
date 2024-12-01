@@ -15,6 +15,7 @@ add_subdirectory(libs/glfw)
 add_subdirectory(libs/soil2)
 
 find_package(GLEW REQUIRED)
+find_package(assimp REQUIRED)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
@@ -22,5 +23,5 @@ include_directories(include)
 
 add_executable(zpg ${SOURCES})
 
-target_link_libraries(zpg PRIVATE soil2 glfw glm::glm ${OPENGL_gl_LIBRARY} GLEW::GLEW)
+target_link_libraries(zpg PRIVATE soil2 glfw glm::glm ${OPENGL_gl_LIBRARY} GLEW::GLEW assimp)
 

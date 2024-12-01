@@ -14,15 +14,10 @@ public:
     LightStrength light_strength;
 
 protected:
-    glm::vec3 color{1.0f};
-
     size_t id = 0;
 
 public:
-    Light() {}
-    Light(glm::vec3 color, size_t id = 0) : color(color), id(id) {}
-    void set_color(glm::vec3 color);
-    glm::vec3 get_color() const;
+    Light(size_t id = 0) : id(id) {}
     void set_id(size_t id);
     void notify_observers() override;
 };
@@ -36,8 +31,7 @@ struct AttenuationData {
 class AttenuatedLight : public Light {
 public:
     AttenuationData attenuation;
-    AttenuatedLight() {}
-    AttenuatedLight(glm::vec3 color, size_t id = 0) : Light(color, id) {}
+    AttenuatedLight(size_t id = 0) : Light(id) {}
 };
 
 namespace lights {
@@ -47,7 +41,7 @@ private:
     glm::vec3 position{0.0f};
 
 public:
-    Point(glm::vec3 color, glm::vec3 position, size_t id = 0) : AttenuatedLight(color, id), position(position) {}
+    Point(glm::vec3 position, size_t id = 0) : AttenuatedLight(id), position(position) {}
     void set_position(glm::vec3 position);
     glm::vec3 get_position() const;
 };
@@ -57,7 +51,7 @@ private:
     glm::vec3 direction{0.0f};
 
 public:
-    Directional(glm::vec3 color, glm::vec3 direction, size_t id = 0) : Light(color, id), direction(direction) {}
+    Directional(glm::vec3 direction, size_t id = 0) : Light(id), direction(direction) {}
     glm::vec3 get_direction() const;
 };
 
@@ -69,8 +63,8 @@ private:
     float outer_cut_off = glm::cos(glm::radians(20.f));
 
 public:
-    Spot(glm::vec3 color, glm::vec3 direction, glm::vec3 position, size_t id = 0)
-        : AttenuatedLight(color, id), direction(direction), position(position) {}
+    Spot(glm::vec3 direction, glm::vec3 position, size_t id = 0)
+        : AttenuatedLight(id), direction(direction), position(position) {}
     Spot() {};
     glm::vec3 get_direction() const;
     glm::vec3 get_position() const;

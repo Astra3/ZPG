@@ -23,6 +23,11 @@ void DrawableObject::render() {
         (*this->texture)->bind();
     }
 
+    if (this->material.has_value()) {
+        // FIXME not reset if there is no value
+        this->material->apply(*this->shader);
+    }
+
     this->shader->use();
     this->model->render();
     glUseProgram(0);

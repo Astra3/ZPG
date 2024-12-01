@@ -18,7 +18,7 @@ public:
 };
 
 class RotateTime : public Rotate {
-    public:
+public:
     RotateTime() : Rotate(0.f, glm::vec3(0, 1, 0)) {}
     void apply(glm::mat4 &matrix) override;
 };

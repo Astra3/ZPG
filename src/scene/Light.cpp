@@ -1,13 +1,6 @@
 #include "Light.hpp"
 #include "../Camera.hpp"
 
-void Light::set_color(glm::vec3 color) {
-    this->color = color;
-    this->notify_observers();
-}
-
-glm::vec3 Light::get_color() const { return this->color; }
-
 void Light::set_id(size_t id) { this->id = id; }
 
 void Light::notify_observers() {

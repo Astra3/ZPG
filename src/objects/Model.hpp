@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <initializer_list>
+#include <string>
 
 #pragma once
 
@@ -20,6 +21,22 @@ public:
 };
 
 namespace models {
+
+struct Vertex {
+    float position[3];
+    float normal[3];
+    float texture[2];
+    float tangent[3];
+};
+
+class ObjectFile : public Model {
+private:
+    int indices_count;
+
+public:
+    ObjectFile(std::string file_name);
+    void render() override;
+};
 
 class Triangle : public Model {
 public:

@@ -5,7 +5,7 @@ class Light;
 namespace lights {
 class Point;
 class Directional;
-}
+} // namespace lights
 
 class Observer {
 public:

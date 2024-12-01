@@ -121,7 +121,6 @@ void ShaderProgram::update(Light &light, size_t light_id) {
     auto positional = dynamic_cast<lights::Point *>(&light);
     if (positional != nullptr) {
         std::string struct_name = "point_lights[" + std::to_string(light_id) + "].";
-        this->apply_transformation(struct_name + "color", positional->get_color());
         this->apply_transformation(struct_name + "position", positional->get_position());
 
         this->apply_light_strength(struct_name, positional->light_strength);
@@ -132,7 +131,6 @@ void ShaderProgram::update(Light &light, size_t light_id) {
     auto directional = dynamic_cast<lights::Directional *>(&light);
     if (directional != nullptr) {
         std::string struct_name = "directional_light.";
-        this->apply_transformation(struct_name + "color", directional->get_color());
         this->apply_transformation(struct_name + "direction", directional->get_direction());
 
         this->apply_light_strength(struct_name, directional->light_strength);
@@ -142,7 +140,6 @@ void ShaderProgram::update(Light &light, size_t light_id) {
     auto spot = dynamic_cast<lights::Flashlight *>(&light);
     if (spot != nullptr) {
         std::string struct_name = "spot_light.";
-        this->apply_transformation(struct_name + "color", spot->get_color());
         this->apply_transformation(struct_name + "direction", spot->get_direction());
         this->apply_transformation(struct_name + "position", spot->get_position());
         this->apply_transformation(struct_name + "cut_off", spot->get_cut_off());

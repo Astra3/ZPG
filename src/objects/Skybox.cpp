@@ -15,4 +15,3 @@ void SkyBox::render() {
     this->skycube.render();
     glUseProgram(0);
 }
-

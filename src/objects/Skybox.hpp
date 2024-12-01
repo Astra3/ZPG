@@ -16,7 +16,7 @@ public:
     SkyBox(std::shared_ptr<Camera> camera)
         : camera(camera), shader_program(std::ifstream("../src/shaders/cubemap_vertex.glsl"),
                                          std::ifstream("../src/shaders/cubemap_fragment.glsl")),
-          cubemap("../src/img/posx.jpg", "../src/img/negx.jpg", "../src/img/posy.jpg", "../src/img/negy.jpg",
-                  "../src/img/posz.jpg", "../src/img/negz.jpg") {}
+          cubemap("../src/sources/posx.jpg", "../src/sources/negx.jpg", "../src/sources/posy.jpg",
+                  "../src/sources/negy.jpg", "../src/sources/posz.jpg", "../src/sources/negz.jpg") {}
     void render();
 };

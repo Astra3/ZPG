@@ -32,25 +32,25 @@ void initialize_scenes(std::vector<Scene> &scenes, std::shared_ptr<ShaderProgram
     auto tex_shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/texture_vertex.glsl"),
                                                       std::ifstream("../src/shaders/texture_fragment.glsl"));
     CAMERA->attach(tex_shader);
-    auto grass_texture = std::make_shared<Texture>("../src/img/grass.png");
-    auto wood_texture = std::make_shared<Texture>("../src/img/test.png");
+    auto grass_texture = std::make_shared<Texture>("../src/sources/grass.png");
+    auto wood_texture = std::make_shared<Texture>("../src/sources/test.png");
 
     // two plains
     scenes.emplace_back();
     auto plain = std::make_shared<models::Plain>();
-    scenes[TEXTURE_TEST].add_model(DrawableObject(plain, tex_shader, {}, grass_texture));
-    scenes[TEXTURE_TEST].add_model(
-        DrawableObject(plain, tex_shader, {std::make_shared<transf::Translate>(glm::vec3(0, 1, 0))}, wood_texture));
+    scenes[TEXTURE_TEST].add_model(DrawableObject(plain, tex_shader, {}, grass_texture, Material()));
+    scenes[TEXTURE_TEST].add_model(DrawableObject(
+        plain, tex_shader, {std::make_shared<transf::Translate>(glm::vec3(0, 1, 0))}, wood_texture, Material()));
 
     // forest day
-    auto dir_light = std::make_unique<lights::Directional>(glm::vec3(1), glm::vec3(0));
+    auto dir_light = std::make_unique<lights::Directional>(glm::vec3(0));
     dir_light->light_strength = LightStrength{.ambient = glm::vec3(.1f), .diffuse = glm::vec3(0.1f)};
     scenes.emplace_back(std::move(dir_light), CAMERA);
 
     auto flashlight = std::make_unique<lights::Flashlight>(CAMERA);
     scenes[FOREST].lights->push_back(std::move(flashlight));
 
-    auto point = std::make_unique<lights::Point>(glm::vec3(1), glm::vec3(0, 10, 0));
+    auto point = std::make_unique<lights::Point>(glm::vec3(10, 10, 0));
     scenes[FOREST].lights->push_back(std::move(point));
 
     scenes[FOREST].apply_generator(generators::trees_bushes, shader, 300);
@@ -58,7 +58,15 @@ void initialize_scenes(std::vector<Scene> &scenes, std::shared_ptr<ShaderProgram
     scenes[FOREST].add_model(DrawableObject(
         plain, tex_shader,
         {std::make_shared<transf::Scale>(glm::vec3(80.0f)), std::make_shared<transf::Translate>(glm::vec3(0, 0.0f, 0))},
-        grass_texture));
+        grass_texture, Material()));
+
+    scenes[FOREST].add_model(DrawableObject(std::make_shared<models::ObjectFile>("../src/sources/house.obj"),
+                                            tex_shader, {std::make_shared<transf::Scale>(glm::vec3(4))},
+                                            std::make_shared<Texture>("../src/sources/house.png"), Material()));
+    scenes[FOREST].add_model(DrawableObject(
+        std::make_shared<models::ObjectFile>("../src/sources/login.obj"), shader,
+        {std::make_shared<transf::Scale>(glm::vec3(80)), std::make_shared<transf::Translate>(glm::vec3(-2, 2, -5))},
+        Material()));
 
     for (auto &light : *scenes[FOREST].lights) {
         light->attach(tex_shader);
@@ -158,17 +166,17 @@ int main() {
     });
     glfwSetScrollCallback(window, [](GLFWwindow *, double, double y_offset) { CAMERA->modify_fov(-y_offset * 2.0f); });
 
-    auto rotation = std::make_shared<transf::RotateTime>();
-    auto scale = std::make_shared<transf::Scale>(glm::vec3(2.0f));
-    auto model_tree = std::make_shared<models::Tree>();
-    scenes[FOREST].add_model(DrawableObject(
-        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(8.0f, 0.0f, 0.0f)), rotation, scale}));
-    scenes[FOREST].add_model(DrawableObject(
-        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, 0.0f, 8.0f)), rotation, scale}));
-    scenes[FOREST].add_model(DrawableObject(
-        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(-8.0f, 0.0f, 0.0f)), rotation, scale}));
-    scenes[FOREST].add_model(DrawableObject(
-        model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, 0.0f, -8.0f)), rotation, scale}));
+    // auto rotation = std::make_shared<transf::RotateTime>();
+    // auto scale = std::make_shared<transf::Scale>(glm::vec3(2.0f));
+    // auto model_tree = std::make_shared<models::Tree>();
+    // scenes[FOREST].add_model(DrawableObject(
+    //     model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(8.0f, 0.0f, 0.0f)), rotation, scale}));
+    // scenes[FOREST].add_model(DrawableObject(
+    //     model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, 0.0f, 8.0f)), rotation, scale}));
+    // scenes[FOREST].add_model(DrawableObject(
+    //     model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(-8.0f, 0.0f, 0.0f)), rotation, scale}));
+    // scenes[FOREST].add_model(DrawableObject(
+    //     model_tree, shader, {std::make_shared<transf::Translate>(glm::vec3(0.0f, 0.0f, -8.0f)), rotation, scale}));
 
     while (!glfwWindowShouldClose(window)) {
         float current_frame = glfwGetTime();

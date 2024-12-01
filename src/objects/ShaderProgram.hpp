@@ -1,7 +1,7 @@
 #include "../observers/Observer.hpp"
-#include <GL/glew.h>
-#include <fstream>
 #include "../scene/Light.hpp"
+#include <fstream>
+#include <GL/glew.h>
 #include <glm/ext/matrix_float3x3.hpp>
 
 #pragma once

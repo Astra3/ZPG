@@ -6,9 +6,7 @@
 namespace transf {
 void Rotate::apply(glm::mat4 &matrix) { matrix = glm::rotate(matrix, this->angle, this->axis); }
 
-void Rotate::set_angle(float angle) {
-    this->angle = angle;
-}
+void Rotate::set_angle(float angle) { this->angle = angle; }
 
 void RotateTime::apply(glm::mat4 &matrix) {
     this->set_angle(glfwGetTime() * 8);

@@ -19,9 +19,7 @@ void Texture::bind() {
     glBindTexture(GL_TEXTURE_2D, this->texture_id);
 }
 
-void Texture::apply_uniform(ShaderProgram &shader_program) {
-    shader_program.apply_transformation("tex_unit_id", 0);
-}
+void Texture::apply_uniform(ShaderProgram &shader_program) { shader_program.apply_transformation("tex_unit_id", 0); }
 
 CubeMap::CubeMap(std::string x_pos, std::string x_neg, std::string y_pos, std::string y_neg, std::string z_pos,
                  std::string z_neg) {
@@ -40,7 +38,4 @@ void CubeMap::bind() {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
-
-void CubeMap::apply_uniform(ShaderProgram &shader_program) {
-    shader_program.apply_transformation("cubemap", 0);
-}
+void CubeMap::apply_uniform(ShaderProgram &shader_program) { shader_program.apply_transformation("cubemap", 0); }
