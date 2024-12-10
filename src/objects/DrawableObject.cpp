@@ -28,7 +28,7 @@ void DrawableObject::render() {
         this->material->apply(*this->shader);
     }
 
-    this->shader->use();
+    this->shader->render();
     this->model->render();
     glUseProgram(0);
 }

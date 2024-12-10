@@ -28,16 +28,9 @@ void Scene::apply_generator(generators::GENERATOR_FUNCTION generator, std::share
 void Scene::add_light(std::unique_ptr<Light> light) {
     if (!this->lights.has_value())
         this->initialize_lights();
-    light->set_id(this->lights->size() == 0 ? 0 : this->lights->size());
+    // light->set_id(this->lights->size() == 0 ? 0 : this->lights->size());
+    light->set_id(0);
     this->lights->push_back(std::move(light));
-}
-
-void Scene::reset_light_ids() {
-    if (this->lights.has_value()) {
-        for (size_t i = 0; i < this->lights->size(); i++) {
-            (*this->lights)[i]->set_id(i);
-        }
-    }
 }
 
 void Scene::render() {

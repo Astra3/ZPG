@@ -1,5 +1,5 @@
 #version 330 core
-#define MAX_LIGHTS 1
+#define MAX_LIGHTS 5
 in vec3 normal;
 in vec3 frag_pos;
 out vec4 frag_color;
@@ -47,8 +47,14 @@ struct SpotLight {
 };
 
 uniform PointLight point_lights[MAX_LIGHTS];
-uniform DirectionalLight directional_light;
-uniform SpotLight spot_light;
+uniform DirectionalLight directional_lights[MAX_LIGHTS];
+uniform SpotLight spot_lights[MAX_LIGHTS];
+
+uniform uint point_light_count;
+uniform uint dir_light_count;
+uniform uint spot_light_count;
+
+uniform bool is_white;
 
 uniform Material material;
 
@@ -63,7 +69,7 @@ vec3 calc_direction_light(DirectionalLight light, vec3 view_dir, vec3 norm) {
 
     vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), material.shininess);
+    float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
     return (ambient + diffuse + specular);
@@ -78,7 +84,7 @@ vec3 calc_point_light(PointLight light, vec3 view_dir, vec3 norm) {
 
     vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), material.shininess);
+    float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
     float distance = length(light.position - frag_pos);
@@ -99,7 +105,7 @@ vec3 calc_spot_light(SpotLight light, vec3 view_dir, vec3 norm) {
 
     vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), material.shininess);
+    float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
     float distance = length(light.position - frag_pos);
@@ -121,16 +127,23 @@ vec3 calc_spot_light(SpotLight light, vec3 view_dir, vec3 norm) {
 void main() {
     vec3 view_dir = normalize(view_pos - frag_pos);
     vec3 norm = normalize(normal);
-    // vec3 result = calc_point_light(point_lights[0], view_dir) * normal;
     vec3 result = vec3(0);
-    for (int i = 0; i < MAX_LIGHTS; i++) {
+    for (uint i = 0u; i < point_light_count; i++) {
         result += calc_point_light(point_lights[i], view_dir, norm);
-}
+    }
 
-    result += calc_spot_light(spot_light, view_dir, norm);
+    for (uint i = 0u; i < spot_light_count; i++) {
+        result += calc_spot_light(spot_lights[i], view_dir, norm);
+    }
 
-    result += calc_direction_light(directional_light, view_dir, norm);
+    for (uint i = 0u; i < dir_light_count; i++) {
+        result += calc_direction_light(directional_lights[i], view_dir, norm);
+    }
 
-    result *= normal;
+    if (is_white) {
+        result *= vec3(1);
+    } else {
+        result *= normal;
+    }
     frag_color = vec4(result, 1.0);
 }

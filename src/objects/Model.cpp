@@ -12,7 +12,7 @@
 #include <assimp/scene.h>
 #include <assimp/types.h>
 #include <cstdlib>
-#include <GL/gl.h>
+#include <GL/glew.h>
 #include <GL/glext.h>
 #include <glm/ext/vector_float4.hpp>
 #include <initializer_list>

@@ -12,7 +12,6 @@ private:
     glm::mat4 previous_projection;
 
 public:
-    bool lock = false;
     SkyBox(std::shared_ptr<Camera> camera)
         : camera(camera), shader_program(std::ifstream("../src/shaders/cubemap_vertex.glsl"),
                                          std::ifstream("../src/shaders/cubemap_fragment.glsl")),

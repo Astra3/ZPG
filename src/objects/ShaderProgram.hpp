@@ -3,6 +3,7 @@
 #include <fstream>
 #include <GL/glew.h>
 #include <glm/ext/matrix_float3x3.hpp>
+#include <memory>
 
 #pragma once
 
@@ -12,6 +13,10 @@ private:
     GLuint shader_program_id;
     void apply_attenuation(std::string &struct_name, AttenuationData attenuation);
     void apply_light_strength(std::string &struct_name, LightStrength strength);
+    uint point_light_count = 0;
+    uint dir_light_count = 0;
+    uint spot_light_count = 0;
+    void use() const;
 
 public:
     ShaderProgram(const char *vertex_source, const char *fragment_source);
@@ -20,9 +25,13 @@ public:
     void apply_transformation(std::string name, const glm::vec3 &vec) const;
     void apply_transformation(std::string name, const float value) const;
     void apply_transformation(std::string name, const int value) const;
-    void use() const;
+    void apply_transformation(std::string name, const uint value) const;
+    void apply_transformation(std::string name, const bool value) const;
+    void render();
     void unuse() const;
     ~ShaderProgram();
     void update(Camera &camera) override;
     void update(Light &light, size_t light_id = 0) override;
+    static std::shared_ptr<ShaderProgram> create_texture(Camera &camera);
+    static std::shared_ptr<ShaderProgram> create_normal_blinn(Camera &camera);
 };

@@ -99,6 +99,20 @@ void ShaderProgram::apply_transformation(std::string name, const int value) cons
     glUseProgram(0);
 }
 
+void ShaderProgram::apply_transformation(std::string name, const uint value) const {
+    this->use();
+    auto transform_lot = glGetUniformLocation(this->shader_program_id, name.c_str());
+    glUniform1ui(transform_lot, value);
+    glUseProgram(0);
+}
+
+void ShaderProgram::apply_transformation(std::string name, const bool value) const {
+    this->use();
+    auto transform_lot = glGetUniformLocation(this->shader_program_id, name.c_str());
+    glUniform1i(transform_lot, value ? 1 : 0);
+    glUseProgram(0);
+}
+
 void ShaderProgram::update(Camera &camera) {
     this->apply_transformation("view_pos", camera.get_position());
     this->apply_transformation("view", camera.get_view());
@@ -125,21 +139,26 @@ void ShaderProgram::update(Light &light, size_t light_id) {
 
         this->apply_light_strength(struct_name, positional->light_strength);
         this->apply_attenuation(struct_name, positional->attenuation);
+
+        this->point_light_count++;
+        this->apply_transformation("point_light_count", this->point_light_count);
         return;
     }
 
     auto directional = dynamic_cast<lights::Directional *>(&light);
     if (directional != nullptr) {
-        std::string struct_name = "directional_light.";
+        std::string struct_name = "directional_lights[" + std::to_string(light_id) + "].";
         this->apply_transformation(struct_name + "direction", directional->get_direction());
 
         this->apply_light_strength(struct_name, directional->light_strength);
+        this->dir_light_count++;
+        this->apply_transformation("dir_light_count", this->dir_light_count);
         return;
     }
 
     auto spot = dynamic_cast<lights::Flashlight *>(&light);
     if (spot != nullptr) {
-        std::string struct_name = "spot_light.";
+        std::string struct_name = "spot_lights[" + std::to_string(light_id) + "].";
         this->apply_transformation(struct_name + "direction", spot->get_direction());
         this->apply_transformation(struct_name + "position", spot->get_position());
         this->apply_transformation(struct_name + "cut_off", spot->get_cut_off());
@@ -147,12 +166,36 @@ void ShaderProgram::update(Light &light, size_t light_id) {
 
         this->apply_light_strength(struct_name, spot->light_strength);
         this->apply_attenuation(struct_name, spot->attenuation);
+
+        this->spot_light_count++;
+        this->apply_transformation("spot_light_count", this->dir_light_count);
         return;
     }
 }
 
 ShaderProgram::~ShaderProgram() { glDeleteProgram(this->shader_program_id); }
 
+void ShaderProgram::render() {
+    this->use();
+    this->point_light_count = 0;
+    this->spot_light_count = 0;
+    this->dir_light_count = 0;
+}
+
 void ShaderProgram::use() const { glUseProgram(this->shader_program_id); }
 
 void ShaderProgram::unuse() const { glUseProgram(0); }
+
+std::shared_ptr<ShaderProgram> ShaderProgram::create_texture(Camera &camera) {
+    auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/texture_vertex.glsl"),
+                                                  std::ifstream("../src/shaders/texture_fragment.glsl"));
+    camera.attach(shader);
+    return shader;
+}
+
+std::shared_ptr<ShaderProgram> ShaderProgram::create_normal_blinn(Camera &camera) {
+    auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/general_vertex.glsl"),
+                                                  std::ifstream("../src/shaders/blinn_fragment.glsl"));
+    camera.attach(shader);
+    return shader;
+}

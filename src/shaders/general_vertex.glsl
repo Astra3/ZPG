@@ -18,6 +18,5 @@ void main() {
     // TODO is this supposed to be normalized?
     // normal = mat3(transpose(inverse(model))) * a_normal;
     normal = normalize(transpose(inverse(mat3(model))) * a_normal);
-    // normal = a_normal;
 }
 

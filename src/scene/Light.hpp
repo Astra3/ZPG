@@ -5,7 +5,7 @@
 
 struct LightStrength {
     glm::vec3 ambient{0.1f};
-    glm::vec3 specular{0.8f};
+    glm::vec3 specular{1.0f};
     glm::vec3 diffuse{10.f};
 };
 

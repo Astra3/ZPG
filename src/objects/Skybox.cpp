@@ -11,7 +11,7 @@ void SkyBox::render() {
     this->cubemap.apply_uniform(this->shader_program);
     this->cubemap.bind();
 
-    this->shader_program.use();
+    this->shader_program.render();
     this->skycube.render();
     glUseProgram(0);
 }
