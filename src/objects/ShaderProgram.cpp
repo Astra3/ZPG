@@ -199,3 +199,11 @@ std::shared_ptr<ShaderProgram> ShaderProgram::create_normal_blinn(Camera &camera
     camera.attach(shader);
     return shader;
 }
+
+
+std::shared_ptr<ShaderProgram> ShaderProgram::create_normal_phong(Camera &camera) {
+    auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/general_vertex.glsl"),
+                                                  std::ifstream("../src/shaders/phong_fragment.glsl"));
+    camera.attach(shader);
+    return shader;
+}

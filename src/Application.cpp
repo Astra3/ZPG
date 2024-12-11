@@ -30,7 +30,7 @@ void Application::create_scenes() {
     }
 
     // forest day
-    auto forest_shader = ShaderProgram::create_normal_blinn(*CAMERA);
+    auto forest_shader = ShaderProgram::create_normal_phong(*CAMERA);
     auto forest_tex_shader = ShaderProgram::create_texture(*CAMERA);
     auto dir_light = std::make_unique<lights::Directional>(glm::vec3(0));
     dir_light->light_strength = LightStrength{.ambient = glm::vec3(.1f), .diffuse = glm::vec3(0.1f)};
@@ -81,13 +81,18 @@ void Application::create_scenes() {
     // four spheres
     auto second_shader = ShaderProgram::create_normal_blinn(*CAMERA);
     second_shader->apply_transformation("is_white", true);
+    auto phong = ShaderProgram::create_normal_phong(*CAMERA);
+    phong->apply_transformation("is_white", true);
+
     auto sphere_point = std::make_unique<lights::Point>(glm::vec3(0));
     sphere_point->attach(second_shader);
+    sphere_point->attach(phong);
     this->scenes.emplace_back(std::move(sphere_point));
 
     auto sphere = std::make_shared<models::Sphere>();
     auto positions1 = {glm::vec3(2, 0, 2), glm::vec3(-2, 0, -2)};
     auto positions2 = {glm::vec3(2, 0, -2), glm::vec3(-2, 0, 2)};
+    auto positions3 = {glm::vec3(0, 3, 0), glm::vec3(0, -3, 0)};
     auto scale_spheres = std::make_shared<transf::Scale>(glm::vec3(4));
     Material shiny_material;
     shiny_material.specular = glm::vec3(8.f);
@@ -102,6 +107,10 @@ void Application::create_scenes() {
         this->scenes[FOUR_SPHERES].add_model(DrawableObject(
             sphere, second_shader, {scale_spheres, std::make_shared<transf::Translate>(pos)}, diffuse_material));
     }
+    for (auto pos : positions3) {
+        this->scenes[FOUR_SPHERES].add_model(
+            DrawableObject(sphere, phong, {scale_spheres, std::make_shared<transf::Translate>(pos)}, shiny_material));
+    }
 }
 
 Application::Application() {
@@ -114,7 +123,7 @@ Application::Application() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    this->window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Testing OpenGL", NULL, NULL);
+    this->window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "ZPG Projekt 😎😭", NULL, NULL);
     if (this->window == NULL) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
