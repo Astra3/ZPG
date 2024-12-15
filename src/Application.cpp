@@ -19,19 +19,18 @@ void Application::create_scenes() {
     auto test_light = std::make_unique<lights::Directional>(glm::vec3(0));
     test_light->light_strength.ambient = glm::vec3(1.f);
     this->scenes.emplace_back(std::move(test_light));
-    auto test_shader = ShaderProgram::create_texture(*CAMERA);
+    auto test_blinn = ShaderProgram::create_blinn(*CAMERA);
     auto plain = std::make_shared<models::Plain>();
-    this->scenes[TEXTURE_TEST].add_model(DrawableObject(plain, test_shader, {}, grass_texture, Material()));
+    this->scenes[TEXTURE_TEST].add_model(DrawableObject(plain, test_blinn, {}, grass_texture, Material()));
     this->scenes[TEXTURE_TEST].add_model(DrawableObject(
-        plain, test_shader, {std::make_shared<transf::Translate>(glm::vec3(0, 1, 0))}, wood_texture, Material()));
+        plain, test_blinn, {std::make_shared<transf::Translate>(glm::vec3(0, 1, 0))}, wood_texture, Material()));
 
     for (auto &light : *scenes[TEXTURE_TEST].lights) {
-        light->attach(test_shader);
+        light->attach(test_blinn);
     }
 
     // forest day
-    auto forest_shader = ShaderProgram::create_normal_phong(*CAMERA);
-    auto forest_tex_shader = ShaderProgram::create_texture(*CAMERA);
+    auto forest_blinn = ShaderProgram::create_blinn(*CAMERA);
     auto dir_light = std::make_unique<lights::Directional>(glm::vec3(0));
     dir_light->light_strength = LightStrength{.ambient = glm::vec3(.1f), .diffuse = glm::vec3(0.1f)};
     this->scenes.emplace_back(std::move(dir_light), CAMERA);
@@ -43,18 +42,18 @@ void Application::create_scenes() {
     auto point = std::make_unique<lights::Point>(glm::vec3(50, 10, 8));
     this->scenes[FOREST].lights->push_back(std::move(point));
 
-    this->scenes[FOREST].apply_generator(generators::trees_bushes, forest_shader, 300);
+    this->scenes[FOREST].apply_generator(generators::trees_bushes, forest_blinn, 300);
 
     this->scenes[FOREST].add_model(DrawableObject(
-        plain, forest_tex_shader,
+        plain, forest_blinn,
         {std::make_shared<transf::Scale>(glm::vec3(80.0f)), std::make_shared<transf::Translate>(glm::vec3(0, 0.0f, 0))},
         grass_texture, Material()));
 
     this->scenes[FOREST].add_model(DrawableObject(std::make_shared<models::ObjectFile>("../src/sources/house.obj"),
-                                                  forest_tex_shader, {std::make_shared<transf::Scale>(glm::vec3(4))},
+                                                  forest_blinn, {std::make_shared<transf::Scale>(glm::vec3(4))},
                                                   std::make_shared<Texture>("../src/sources/house.png"), Material()));
     this->scenes[FOREST].add_model(DrawableObject(
-        std::make_shared<models::ObjectFile>("../src/sources/login.obj"), forest_tex_shader,
+        std::make_shared<models::ObjectFile>("../src/sources/login.obj"), forest_blinn,
         {std::make_shared<transf::Scale>(glm::vec3(80)), std::make_shared<transf::Translate>(glm::vec3(-2, 2, -5))},
         wood_texture, Material()));
 
@@ -62,31 +61,30 @@ void Application::create_scenes() {
     auto scale = std::make_shared<transf::Scale>(glm::vec3(2.0f));
     auto model_tree = std::make_shared<models::Tree>();
     scenes[FOREST].add_model(
-        DrawableObject(model_tree, forest_shader,
+        DrawableObject(model_tree, forest_blinn,
                        {std::make_shared<transf::Translate>(glm::vec3(50.0f, 0.0f, 0.0f)), rotation, scale}));
     scenes[FOREST].add_model(
-        DrawableObject(model_tree, forest_shader,
+        DrawableObject(model_tree, forest_blinn,
                        {std::make_shared<transf::Translate>(glm::vec3(0.0f, 0.0f, 50.0f)), rotation, scale}));
     scenes[FOREST].add_model(
-        DrawableObject(model_tree, forest_shader,
+        DrawableObject(model_tree, forest_blinn,
                        {std::make_shared<transf::Translate>(glm::vec3(-50.0f, 0.0f, 0.0f)), rotation, scale}));
     scenes[FOREST].add_model(
-        DrawableObject(model_tree, forest_shader,
+        DrawableObject(model_tree, forest_blinn,
                        {std::make_shared<transf::Translate>(glm::vec3(0.0f, 0.0f, -50.0f)), rotation, scale}));
     for (auto &light : *scenes[FOREST].lights) {
-        light->attach(forest_tex_shader);
-        light->attach(forest_shader);
+        light->attach(forest_blinn);
     }
 
     // four spheres
-    auto second_shader = ShaderProgram::create_normal_blinn(*CAMERA);
-    second_shader->apply_transformation("is_white", true);
-    auto phong = ShaderProgram::create_normal_phong(*CAMERA);
-    phong->apply_transformation("is_white", true);
+    auto spheres_blinn = ShaderProgram::create_blinn(*CAMERA);
+    spheres_blinn->apply_transformation("is_white", true);
+    auto spheres_phong = ShaderProgram::create_phong(*CAMERA);
+    spheres_phong->apply_transformation("is_white", true);
 
     auto sphere_point = std::make_unique<lights::Point>(glm::vec3(0));
-    sphere_point->attach(second_shader);
-    sphere_point->attach(phong);
+    sphere_point->attach(spheres_blinn);
+    sphere_point->attach(spheres_phong);
     this->scenes.emplace_back(std::move(sphere_point));
 
     auto sphere = std::make_shared<models::Sphere>();
@@ -101,15 +99,15 @@ void Application::create_scenes() {
     diffuse_material.diffuse = glm::vec3(1.5f);
     for (auto pos : positions1) {
         this->scenes[FOUR_SPHERES].add_model(DrawableObject(
-            sphere, second_shader, {scale_spheres, std::make_shared<transf::Translate>(pos)}, shiny_material));
+            sphere, spheres_blinn, {scale_spheres, std::make_shared<transf::Translate>(pos)}, shiny_material));
     }
     for (auto pos : positions2) {
         this->scenes[FOUR_SPHERES].add_model(DrawableObject(
-            sphere, second_shader, {scale_spheres, std::make_shared<transf::Translate>(pos)}, diffuse_material));
+            sphere, spheres_blinn, {scale_spheres, std::make_shared<transf::Translate>(pos)}, diffuse_material));
     }
     for (auto pos : positions3) {
         this->scenes[FOUR_SPHERES].add_model(
-            DrawableObject(sphere, phong, {scale_spheres, std::make_shared<transf::Translate>(pos)}, shiny_material));
+            DrawableObject(sphere, spheres_phong, {scale_spheres, std::make_shared<transf::Translate>(pos)}, shiny_material));
     }
 }
 

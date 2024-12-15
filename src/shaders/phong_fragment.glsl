@@ -2,6 +2,7 @@
 #define MAX_LIGHTS 5
 in vec3 normal;
 in vec3 frag_pos;
+in vec2 tex_coord;
 out vec4 frag_color;
 
 struct Material {
@@ -50,11 +51,14 @@ uniform PointLight point_lights[MAX_LIGHTS];
 uniform DirectionalLight directional_lights[MAX_LIGHTS];
 uniform SpotLight spot_lights[MAX_LIGHTS];
 
+uniform sampler2D tex_unit_id;
+
 uniform uint point_light_count;
 uniform uint dir_light_count;
 uniform uint spot_light_count;
 
 uniform bool is_white;
+uniform bool is_textured;
 
 uniform Material material;
 
@@ -69,6 +73,7 @@ vec3 calc_direction_light(DirectionalLight light, vec3 view_dir, vec3 norm) {
 
     vec3 reflect_dir = reflect(-light_direction, norm);
 
+    // phong formula
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
@@ -85,7 +90,7 @@ vec3 calc_point_light(PointLight light, vec3 view_dir, vec3 norm) {
     vec3 reflect_dir = reflect(-light_direction, norm);
 
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
-    vec3 specular = light.specular * spec * material.specular;
+    vec3 specular = light.specular * (spec * material.specular);
 
     float distance = length(light.position - frag_pos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
@@ -140,10 +145,14 @@ void main() {
         result += calc_direction_light(directional_lights[i], view_dir, norm);
     }
 
-    if (is_white) {
+    if (is_textured) {
+        frag_color = vec4(result, 1.0) * texture(tex_unit_id, tex_coord);
+    }
+    else if (is_white) {
         result *= vec3(1);
+        frag_color = vec4(result, 1.0);
     } else {
         result *= normal;
+        frag_color = vec4(result, 1.0);
     }
-    frag_color = vec4(result, 1.0);
 }

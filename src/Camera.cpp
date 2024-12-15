@@ -75,8 +75,8 @@ void Camera::move_mouse(double x_pos, double y_pos) {
 
 void Camera::modify_fov(float offset) {
     this->fov += offset;
-    if (fov < 1.0f) {
-        this->fov = 1.0f;
+    if (fov < 20.0f) {
+        this->fov = 20.0f;
     }
     if (fov > 120.0f) {
         this->fov = 120.0f;

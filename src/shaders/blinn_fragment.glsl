@@ -2,6 +2,7 @@
 #define MAX_LIGHTS 5
 in vec3 normal;
 in vec3 frag_pos;
+in vec2 tex_coord;
 out vec4 frag_color;
 
 struct Material {
@@ -50,11 +51,14 @@ uniform PointLight point_lights[MAX_LIGHTS];
 uniform DirectionalLight directional_lights[MAX_LIGHTS];
 uniform SpotLight spot_lights[MAX_LIGHTS];
 
+uniform sampler2D tex_unit_id;
+
 uniform uint point_light_count;
 uniform uint dir_light_count;
 uniform uint spot_light_count;
 
 uniform bool is_white;
+uniform bool is_textured;
 
 uniform Material material;
 
@@ -140,10 +144,14 @@ void main() {
         result += calc_direction_light(directional_lights[i], view_dir, norm);
     }
 
-    if (is_white) {
+    if (is_textured) {
+        frag_color = vec4(result, 1.0) * texture(tex_unit_id, tex_coord);
+    }
+    else if (is_white) {
         result *= vec3(1);
+        frag_color = vec4(result, 1.0);
     } else {
         result *= normal;
+        frag_color = vec4(result, 1.0);
     }
-    frag_color = vec4(result, 1.0);
 }

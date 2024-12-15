@@ -186,23 +186,16 @@ void ShaderProgram::use() const { glUseProgram(this->shader_program_id); }
 
 void ShaderProgram::unuse() const { glUseProgram(0); }
 
-std::shared_ptr<ShaderProgram> ShaderProgram::create_texture(Camera &camera) {
+std::shared_ptr<ShaderProgram> ShaderProgram::create_blinn(Camera &camera) {
     auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/texture_vertex.glsl"),
-                                                  std::ifstream("../src/shaders/texture_fragment.glsl"));
-    camera.attach(shader);
-    return shader;
-}
-
-std::shared_ptr<ShaderProgram> ShaderProgram::create_normal_blinn(Camera &camera) {
-    auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/general_vertex.glsl"),
                                                   std::ifstream("../src/shaders/blinn_fragment.glsl"));
     camera.attach(shader);
     return shader;
 }
 
 
-std::shared_ptr<ShaderProgram> ShaderProgram::create_normal_phong(Camera &camera) {
-    auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/general_vertex.glsl"),
+std::shared_ptr<ShaderProgram> ShaderProgram::create_phong(Camera &camera) {
+    auto shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/texture_vertex.glsl"),
                                                   std::ifstream("../src/shaders/phong_fragment.glsl"));
     camera.attach(shader);
     return shader;

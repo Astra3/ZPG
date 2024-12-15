@@ -32,7 +32,6 @@ public:
     ~ShaderProgram();
     void update(Camera &camera) override;
     void update(Light &light, size_t light_id = 0) override;
-    static std::shared_ptr<ShaderProgram> create_texture(Camera &camera);
-    static std::shared_ptr<ShaderProgram> create_normal_blinn(Camera &camera);
-    static std::shared_ptr<ShaderProgram> create_normal_phong(Camera &camera);
+    static std::shared_ptr<ShaderProgram> create_blinn(Camera &camera);
+    static std::shared_ptr<ShaderProgram> create_phong(Camera &camera);
 };

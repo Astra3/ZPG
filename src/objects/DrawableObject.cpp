@@ -19,8 +19,11 @@ void DrawableObject::render() {
 
     if (this->texture.has_value()) {
         // this->shader->apply_transformation("tex_unit_id", 0);
+        this->shader->apply_transformation("is_textured", true);
         (*this->texture)->apply_uniform(*this->shader);
         (*this->texture)->bind();
+    } else {
+        this->shader->apply_transformation("is_textured", false);
     }
 
     if (this->material.has_value()) {
