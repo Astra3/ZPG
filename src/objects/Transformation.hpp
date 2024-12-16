@@ -18,8 +18,24 @@ public:
 };
 
 class RotateTime : public Rotate {
+private:
+    float speed;
 public:
-    RotateTime() : Rotate(0.f, glm::vec3(0, 1, 0)) {}
+    RotateTime(float speed = 2.f) : Rotate(0.f, glm::vec3(0, 1, 0)), speed(speed) {}
+    void apply(glm::mat4 &matrix) override;
+};
+
+class RotateAround : public Rotate {
+    protected:
+        float speed;
+    public:
+        RotateAround(float speed) : Rotate(0.f, glm::vec3(0, 1, 0)), speed(speed) {}
+        void apply(glm::mat4 &matrix) override;
+};
+
+class RotateMoon : public RotateAround {
+    public:
+    RotateMoon(float speed) : RotateAround(speed) {}
     void apply(glm::mat4 &matrix) override;
 };
 

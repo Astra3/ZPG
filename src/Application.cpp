@@ -1,8 +1,12 @@
 #include <GL/glew.h>
 #include "GLFW/glfw3.h"
+#include "objects/DrawableObject.hpp"
 
 #include "Application.hpp"
 #include <iostream>
+#include <memory>
+
+#define PLANETS 2
 
 void Application::create_shaders() {
     auto tex_shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/texture_vertex.glsl"),
@@ -17,6 +21,7 @@ void Application::create_shaders() {
 }
 
 void Application::create_scenes() {
+    this->scenes.reserve(3);
     auto tex_shader = this->shaders.at("tex_shader");
     auto shader = this->shaders.at("normal_shader");
 
@@ -61,6 +66,22 @@ void Application::create_scenes() {
         light->attach(tex_shader);
         light->attach(shader);
     }
+
+    auto sun_shader = std::make_shared<ShaderProgram>(std::ifstream("../src/shaders/texture_vertex.glsl"), std::ifstream("../src/shaders/sun_shader.glsl"));
+    CAMERA->attach(sun_shader);
+    auto solar_light = std::make_unique<lights::Point>(glm::vec3(0, 0, 0));
+    solar_light->attach(tex_shader);
+    solar_light->attenuation.quadratic = 0.001f;
+    this->scenes.emplace_back(std::move(solar_light));
+
+    auto base_speed = 1.f;
+
+    auto planet = std::make_shared<models::ObjectFile>("../src/sources/planet.obj");
+    this->scenes[PLANETS].add_model(DrawableObject(planet, sun_shader, {std::make_shared<transf::RotateTime>(base_speed), std::make_shared<transf::Scale>(glm::vec3(6))}, std::make_shared<Texture>("../src/sources/sun.png"), Material()));
+
+    this->scenes[PLANETS].add_model(DrawableObject(planet, tex_shader, {std::make_shared<transf::Translate>(glm::vec3(-20, 0, 0)), std::make_shared<transf::RotateAround>(base_speed * 2), std::make_shared<transf::RotateTime>(base_speed * 3), std::make_shared<transf::Scale>(glm::vec3(3))}, std::make_shared<Texture>("../src/sources/earth.png"), Material()));
+
+    this->scenes[PLANETS].add_model(DrawableObject(planet, tex_shader, {std::make_shared<transf::Translate>(glm::vec3(-20, 0, 0)), std::make_shared<transf::RotateMoon>(base_speed * 3 * 5), std::make_shared<transf::RotateTime>(5)}, std::make_shared<Texture>("../src/sources/moon.png"), Material()));
 }
 
 Application::Application() {

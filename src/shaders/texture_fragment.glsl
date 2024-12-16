@@ -66,7 +66,7 @@ vec3 calc_direction_light(DirectionalLight light, vec3 view_dir, vec3 norm) {
 
     vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), material.shininess);
+    float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
     return (ambient + diffuse + specular);
@@ -81,7 +81,7 @@ vec3 calc_point_light(PointLight light, vec3 view_dir, vec3 norm) {
 
     vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), material.shininess);
+    float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
     float distance = length(light.position - frag_pos);
@@ -102,7 +102,7 @@ vec3 calc_spot_light(SpotLight light, vec3 view_dir, vec3 norm) {
 
     vec3 halfway_dir = normalize(light_direction + view_dir);
 
-    float spec = pow(max(dot(view_dir, halfway_dir), 0.0), material.shininess);
+    float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
     vec3 specular = light.specular * (spec * material.specular);
 
     float distance = length(light.position - frag_pos);
